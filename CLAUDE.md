@@ -57,6 +57,7 @@ tags: [タグ1, タグ2, タグ3]
 
 - `categories` is a single large classification that also becomes part of the URL path. Keep to the fixed taxonomy in `docs/planning/content-strategy.md` section 3 (`生成AIのきほん`, `プロンプト設計`, `業務効率化`, `ツール比較`, `Tips・小技`, `ニュース`, `開発者向け`, `お知らせ`) unless the strategy doc is updated first — don't invent new categories ad hoc.
 - `tags` are cross-cutting keywords (tool name, job role/scene, etc.), multiple allowed. Also add the reader-level tag matching the article's step: `入口` / `ステップアップ` / `現場実践`.
+- Every post must carry more than knowledge. Include at least one of: first-hand experience (what actually happened when it was tried, failures included), the shared-constraint perspective (a client-site engineer writing for client-site engineers), or curation (what to learn first, what to ignore). Before finishing, ask "would ChatGPT give an equal or better answer to this same question?" — if yes, one of those three is missing. `開発者向け` posts drift into pure explanation most easily; see `docs/planning/content-strategy.md` sections 1 and 3.
 - Body is standard Markdown after the front matter. Internal links can use relative paths — `baseurl` is already handled by `_config.yml`.
 - Standard article format (from the strategy doc): lead with the conclusion/what-the-reader-gains, then usage scene, actual prompt/steps, Before/After if possible, and a summary — see `docs/planning/content-strategy.md` section 5 for the full template. The `ニュース` category uses its own template (same section).
 
