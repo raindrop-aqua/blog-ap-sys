@@ -10,7 +10,16 @@ theme: minima
 # マークダウン拡張
 markdown: kramdown
 
-# 公開対象は site/ 配下のみ（許可リスト方式）
-# リポジトリ直下のGemfileやCLAUDE.mdなどの開発用ファイルはsource外のため
-# exclude設定を追加しなくても自動的にビルド対象外になる
-source: site
+# ビルド除外設定
+# 独自にexcludeを定義するとJekyllの標準除外リスト(Gemfile等)が丸ごと上書きされるため、
+# それらも含めて明示的に指定する
+exclude:
+  - README.md
+  - docs/
+  - Dockerfile
+  - .dockerignore
+  - preview.sh
+  - Gemfile
+  - Gemfile.lock
+  - vendor/
+  - node_modules/
