@@ -1,8 +1,16 @@
+# 基本設定
 title: 明日使える生成AI
 description: "明日使える生成AIテクニックを紹介するサイト"
 baseurl: "/blog-ap-sys"
 url: "https://raindrop-aqua.github.io"
 
+# テーマ
 theme: minima
 
+# マークダウン拡張
 markdown: kramdown
+
+# ビルド除外設定
+exclude:
+  - README.md
+  - docs/

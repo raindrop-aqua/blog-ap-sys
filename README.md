@@ -54,3 +54,37 @@ Front Matterの下から、通常のMarkdownで執筆する。
 ### 5. 注意点
 - ファイル名の日付が未来日だと公開されないので注意（`date`はファイル名と一致させる）
 - `baseurl` は `_config.yml` に設定済みのため、記事内リンクは相対パスでOK
+
+---
+
+## ローカルプレビュー環境（Apple Container）
+
+Docker Desktopの代わりに、macOS標準の[Apple Container](https://github.com/apple/container)を使ってJekyllのプレビュー環境を動かせます。
+
+### 前提条件
+- macOS 26以降 + Apple Silicon
+- `container` CLI がインストール済み（`container system status` で `running` になっていること）
+
+### 起動方法
+
+```sh
+./preview.sh
+```
+
+[preview.sh](preview.sh) がイメージのビルドとコンテナ起動（カレントディレクトリをマウントしてホットリロード）をまとめて行う。`Ctrl-C`で停止すると`--rm`によりコンテナも自動削除される。
+
+起動後、ブラウザで以下にアクセス（`baseurl` が `/blog-ap-sys` のため末尾のパスが必要）。
+
+```
+http://localhost:4000/blog-ap-sys/
+```
+
+`_posts/` や `_config.yml` を編集すると自動的に再ビルドされます（`--force_polling` によりコンテナ越しのファイル変更も検知）。
+
+### 停止方法
+
+```sh
+container stop blog-preview
+```
+
+バックグラウンドで動かしたい場合は `run` に `-d` を追加する。
