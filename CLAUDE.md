@@ -59,7 +59,7 @@ tags: [タグ1, タグ2, タグ3]
 - `tags` are cross-cutting keywords (tool name, job role/scene, etc.), multiple allowed. Also add the reader-level tag matching the article's step: `入口` / `ステップアップ` / `現場実践`.
 - Every post must carry more than knowledge. Include at least one of: first-hand experience (what actually happened when it was tried, failures included), the shared-constraint perspective (a client-site engineer writing for client-site engineers), or curation (what to learn first, what to ignore). Before finishing, ask "would ChatGPT give an equal or better answer to this same question?" — if yes, one of those three is missing. `開発者向け` posts drift into pure explanation most easily; see `docs/planning/content-strategy.md` sections 1 and 3.
 - Body is standard Markdown after the front matter. Internal links can use relative paths — `baseurl` is already handled by `_config.yml`.
-- Standard article format (from the strategy doc): lead with the conclusion/what-the-reader-gains, then usage scene, actual prompt/steps, Before/After if possible, and a summary — see `docs/planning/content-strategy.md` section 5 for the full template. The `ニュース` category uses its own template (same section).
+- Article shape depends on the category. `docs/planning/content-strategy.md` section 5 maps each category to one of four templates (standard how-to, きほん for concept pieces, comparison, news) and lists the rules for each. Pick the template from that table before drafting — don't default to the how-to shape. Every type leads with the conclusion and states in the first sentence or two whose problem the post solves.
 
 ## Build exclusions
 
