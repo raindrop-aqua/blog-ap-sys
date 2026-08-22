@@ -5,12 +5,18 @@
 ## 公開URL
 https://raindrop-aqua.github.io/blog-ap-sys/
 
+## リポジトリ構成
+`_config.yml` の `source: site` により、**`site/` フォルダの中身だけがビルド・公開対象**。`Gemfile`や`Dockerfile`、`CLAUDE.md`などリポジトリ直下に置く開発用ファイルは`site/`の外にあるため、`exclude`設定を追加しなくても自動的に公開対象から外れる。新しく開発用ファイルをルート直下に追加する分には気にする必要はない。
+
+- `site/` … 公開されるJekyllサイト本体（`_posts/`、`index.md`など）
+- ルート直下 … 開発用ファイル（Gemfile、Dockerfile、preview.shなど）
+
 ---
 
 ## 記事の書き方
 
 ### 1. ファイルの作成場所
-`_posts/` フォルダの中に、以下のファイル名ルールで作成する。
+`site/_posts/` フォルダの中に、以下のファイル名ルールで作成する。
 
 YYYY-MM-DD-記事タイトル(英語・ハイフン区切り).md
 
@@ -46,7 +52,7 @@ Front Matterの下から、通常のMarkdownで執筆する。
 ```
 
 ### 4. 公開までの流れ
-1. `_posts/` に記事ファイルを作成してGitHubにコミット（push）
+1. `site/_posts/` に記事ファイルを作成してGitHubにコミット（push）
 2. 数分待つ（GitHub Actionsが自動でJekyllビルド）
 3. Actionsタブでビルド完了を確認
 4. 公開URLで反映を確認
@@ -79,7 +85,7 @@ Docker Desktopの代わりに、macOS標準の[Apple Container](https://github.c
 http://localhost:4000/blog-ap-sys/
 ```
 
-`_posts/` や `_config.yml` を編集すると自動的に再ビルドされます（`--force_polling` によりコンテナ越しのファイル変更も検知）。
+`site/_posts/` や `_config.yml` を編集すると自動的に再ビルドされます（`--force_polling` によりコンテナ越しのファイル変更も検知）。
 
 ### 停止方法
 
