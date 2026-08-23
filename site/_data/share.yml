@@ -1,0 +1,15 @@
+# 記事末尾のシェアボタン。アイコンは Font Awesome
+# https://fontawesome.com/
+
+platforms:
+  - type: X
+    icon: "fa-brands fa-square-x-twitter"
+    link: "https://twitter.com/intent/tweet?text=TITLE&url=URL"
+
+  - type: Facebook
+    icon: "fab fa-facebook-square"
+    link: "https://www.facebook.com/sharer/sharer.php?title=TITLE&u=URL"
+
+  - type: Hatena
+    icon: "fas fa-square-h"
+    link: "https://b.hatena.ne.jp/entry/panel/?url=URL&title=TITLE"
