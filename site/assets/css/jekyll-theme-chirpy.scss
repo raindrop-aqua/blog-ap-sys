@@ -1,0 +1,88 @@
+---
+---
+
+@use 'abstracts/variables' with (
+  $theme: '{{ site.theme_mode }}',
+
+  // 欧文はテーマ既定の Source Sans Pro / Lato に任せ、和文は BIZ UDPGothic に流す。
+  // テーマ既定の 'Microsoft Yahei' は中国語字形なので必ず外すこと（日本語が中華フォントになる）
+  $font-family-base: (
+    'Source Sans Pro',
+    'BIZ UDPGothic',
+    'Hiragino Sans',
+    'Yu Gothic UI',
+    Meiryo,
+    sans-serif
+  ),
+  $font-family-heading: (
+    Lato,
+    'BIZ UDPGothic',
+    'Hiragino Sans',
+    'Yu Gothic UI',
+    Meiryo,
+    sans-serif
+  )
+);
+
+/* prettier-ignore */
+@use 'main
+{%- if jekyll.environment == 'production' -%}
+  .bundle
+{%- endif -%}
+';
+
+/* ============================================================
+   ここから独自スタイル
+   ============================================================ */
+
+/* コードブロック・インラインコードの等幅フォント。
+   Bootstrap の変数経由でテーマ全体に効く。
+   本文と同じ Adobe のスーパーファミリーで揃え、
+   コメント中の日本語は和文フォントへフォールバックさせる */
+:root {
+  --bs-font-monospace: 'Source Code Pro', 'SFMono-Regular', Menlo, Consolas,
+    'BIZ UDPGothic', 'Hiragino Sans', monospace;
+}
+
+/* リンク色。テーマ既定(#0056b2)より彩度を落とし、faviconの藍色に寄せる。
+   Chirpy はテーマ変数を
+     :root[data-bs-theme='light'] / ['dark'] / :root:not([data-bs-theme]) + メディアクエリ
+   の3系統に出し分けるので、同じ組み合わせを同じ順序で上書きする */
+:root[data-bs-theme='light'],
+:root:not([data-bs-theme]) {
+  --link-color: #41519c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-bs-theme]) {
+    --link-color: #a3aee0;
+  }
+}
+
+:root[data-bs-theme='dark'] {
+  --link-color: #a3aee0;
+}
+
+/* 和文の行間。テーマ既定の 1.75 だと日本語は詰まって見える */
+main {
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+
+  /* コードと等幅表示は字送りを触らない */
+  code,
+  pre,
+  kbd,
+  .highlight {
+    letter-spacing: normal;
+  }
+}

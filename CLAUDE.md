@@ -32,7 +32,7 @@ There is no separate lint/test/build command — Jekyll build errors surface in 
 
 ## Publishing flow
 
-1. Add a post file under `_posts/` (see naming/front matter rules below) and commit/push to GitHub.
+1. Add a post file under `site/_posts/` (see naming/front matter rules below) and commit/push to GitHub.
 2. GitHub Actions builds the site with Jekyll automatically.
 3. Check the Actions tab for build completion.
 4. Verify at the public URL.
@@ -41,7 +41,7 @@ Important: a post whose filename date is in the future will not be published —
 
 ## Writing posts
 
-File location: `_posts/`, named `YYYY-MM-DD-english-hyphenated-title.md` (e.g. `2026-08-21-chatgpt-prompt-tips.md`).
+File location: `site/_posts/`, named `YYYY-MM-DD-english-hyphenated-title.md` (e.g. `2026-08-21-chatgpt-prompt-tips.md`).
 
 Required front matter:
 
@@ -55,12 +55,41 @@ tags: [ツール名, 職種/シーン, キーワード, 段階タグ]
 ---
 ```
 
-- `categories` is a single large classification that also becomes part of the URL path. Keep to the fixed taxonomy in `docs/planning/content-strategy.md` section 3 (`生成AIのきほん`, `プロンプト設計`, `業務効率化`, `ツール比較`, `Tips・小技`, `ニュース`, `開発者向け`, `お知らせ`) unless the strategy doc is updated first — don't invent new categories ad hoc.
+- `categories` is a single large classification. It drives the `/categories/<name>/` listing page and the sidebar's カテゴリー tab — the main way readers reach older posts — but it is *not* part of the post URL (posts live at `/posts/<filename-slug>/`). Keep to the fixed taxonomy in `docs/planning/content-strategy.md` section 3 (`生成AIのきほん`, `プロンプト設計`, `業務効率化`, `ツール比較`, `Tips・小技`, `ニュース`, `開発者向け`, `お知らせ`) unless the strategy doc is updated first — don't invent new categories ad hoc.
 - `tags` are cross-cutting keywords (tool name, job role/scene, etc.), multiple allowed. Also add the reader-level tag (`入口` / `ステップアップ` / `現場実践`), which is **determined by the category** — take the default from the category table in `docs/planning/content-strategy.md` section 3 rather than deciding per article. Only `プロンプト設計` and `業務効率化` need a judgment call.
 - Every post must carry more than knowledge. Include at least one of: first-hand experience (what actually happened when it was tried, failures included), the shared-constraint perspective (a client-site engineer writing for client-site engineers), or curation (what to learn first, what to ignore). Before finishing, ask "would ChatGPT give an equal or better answer to this same question?" — if yes, one of those three is missing. `開発者向け` posts drift into pure explanation most easily; see `docs/planning/content-strategy.md` sections 1 and 3.
 - Body is standard Markdown after the front matter. Internal links can use relative paths — `baseurl` is already handled by `_config.yml`.
 - Article shape depends on the category. `docs/planning/content-strategy.md` section 5 maps each category to one of four templates (standard how-to, きほん for concept pieces, comparison, news) and lists the rules for each. Pick the template from that table before drafting — don't default to the how-to shape. Every type leads with the conclusion and states in the first sentence or two whose problem the post solves.
 
-## Build exclusions
+## Theme and layout
 
-`_config.yml`'s `exclude:` list is set explicitly (README, docs/, Dockerfile, preview.sh, Gemfile*, vendor/, node_modules/) because defining a custom `exclude` in Jekyll overrides the default exclude list rather than appending to it. When adding new non-content files/directories to the repo root, add them to this list too or they'll be published into `_site/`.
+The site uses the **Chirpy** theme (`jekyll-theme-chirpy` gem, pinned `~> 7.6` in the root `Gemfile`), not minima. Chirpy needs Jekyll 4.x, so the build no longer goes through the `github-pages` gem — the theme gem pulls in jekyll, jekyll-paginate, jekyll-seo-tag, jekyll-archives, jekyll-sitemap, and jekyll-include-cache as runtime dependencies, and Jekyll auto-requires them. Don't add a `plugins:` list to `_config.yml` for those.
+
+Everything the theme provides (layouts, includes, sass, JS bundles, the `ja-JP` UI locale) lives inside the gem. The repo only holds the small set of files that override or feed it, all under `site/`:
+
+| Path | Role |
+|---|---|
+| `site/index.html` | Home page (`layout: home`), post list |
+| `site/_tabs/*.md` | Sidebar tabs. `order:` sets the position, `icon:` is a Font Awesome class. `about.md` has real content; the other three are just `layout:` stubs the theme fills in |
+| `site/_data/contact.yml` | Sidebar contact icons. The email entry is removed on purpose — `social.email` in `_config.yml` is left blank so the address isn't published |
+| `site/_data/share.yml` | Share buttons under each post (X / Facebook / はてなブックマーク) |
+| `site/_plugins/posts-lastmod-hook.rb` | Sets `last_modified_at` from git history, so edited posts show an updated date |
+| `site/_includes/metadata-hook.html` | Chirpy's `<head>` extension point. Loads the Japanese and monospace web fonts |
+| `site/assets/css/jekyll-theme-chirpy.scss` | Style overrides (see below) |
+| `site/assets/img/favicons/` | Favicons. The PNGs are generated from `favicon.svg` with `rsvg-convert` |
+
+To change a theme layout or include, copy the file out of the gem (`bundle show jekyll-theme-chirpy`) into the matching path under `site/` — the site's copy wins.
+
+### Style overrides
+
+All custom CSS lives in `site/assets/css/jekyll-theme-chirpy.scss`, which re-declares the theme's own entry point. The leading `@use 'abstracts/variables' with (...)` block must stay first — Sass rejects `@use ... with` after any rule. What's overridden and why:
+
+- **Fonts** — Latin stays on the theme's Source Sans Pro / Lato, Japanese falls through to **BIZ UDPGothic**. The theme's default stack ends in `'Microsoft Yahei'`, which renders Japanese with Chinese glyph shapes; never leave it in. Code is Source Code Pro via Bootstrap's `--bs-font-monospace`. The two web fonts BIZ UDPGothic and Source Code Pro are loaded in `site/_includes/metadata-hook.html`; changing the font stack means changing that link too.
+- **Line height** — `main` goes from the theme's 1.75 to 1.9 with slight letter-spacing, because Japanese looks cramped at the theme default. Headings and code are exempted.
+- **Link color** — desaturated from the theme's `#0056b2`. Chirpy emits its color variables under three selectors (`:root[data-bs-theme='light']`, `:root[data-bs-theme='dark']`, and `:root:not([data-bs-theme])` inside a `prefers-color-scheme` media query). Any color override has to repeat all three **in that order** — specificity is equal, so source order decides which wins.
+
+PWA/service worker is disabled in `_config.yml` (`pwa.enabled: false`) to avoid stale-cache confusion on the `baseurl` sub-path.
+
+## What gets published
+
+`_config.yml` sets `source: site`, so only `site/` is a build input. Files at the repo root (`CLAUDE.md`, `README.md`, `docs/`, `Gemfile`, `Dockerfile`, `preview.sh`) are outside the source tree and can never leak into `_site/` — there is deliberately no `exclude:` list to maintain. Anything that should be published has to go under `site/`.

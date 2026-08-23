@@ -1,17 +1,131 @@
+# ------------------------------------------------------------------
 # 基本設定
+# ------------------------------------------------------------------
+
+theme: jekyll-theme-chirpy
+
+# _data/locales/ja-JP.yml がテーマgemに含まれており、UIラベルも日本語になる
+lang: ja-JP
+timezone: Asia/Tokyo
+
 title: 明日使える生成AI
-description: "明日使える生成AIテクニックを紹介するサイト"
-baseurl: "/blog-ap-sys"
+tagline: 常駐先の制約の中で、AIを使いこなす
+description: >-
+  明日使える生成AIテクニックを紹介するサイト
+
 url: "https://raindrop-aqua.github.io"
+baseurl: "/blog-ap-sys"
 
-# テーマ
-theme: minima
+github:
+  username: raindrop-aqua
 
-# マークダウン拡張
-markdown: kramdown
+social:
+  name: raindrop-aqua
+  email: # 公開したくなければ空のままでよい（_data/contact.yml のメール項目も外してある）
+  links:
+    - https://github.com/raindrop-aqua
 
 # 公開対象は site/ 配下のみ（許可リスト方式）
 # リポジトリ直下のGemfileやCLAUDE.mdなどの開発用ファイルはsource外のため
 # exclude設定を追加しなくても自動的にビルド対象外になる
-# GitHub Actionsベースのビルド(.github/workflows/pages.yml)でのみ有効
 source: site
+
+# ------------------------------------------------------------------
+# テーマの挙動
+# ------------------------------------------------------------------
+
+# 空にするとOSの設定に追従し、サイドバー下部にライト/ダーク切替が出る
+theme_mode: # [light | dark]
+
+toc: true
+paginate: 10
+
+avatar: /assets/img/favicons/web-app-manifest-512x512.png
+social_preview_image: /assets/img/favicons/web-app-manifest-512x512.png
+
+# PWA（Service Worker）は無効。baseurl配下でのキャッシュ更新事故を避けるため
+pwa:
+  enabled: false
+  cache:
+    enabled: false
+
+comments:
+  provider: # [disqus | utterances | giscus]
+
+analytics:
+  google:
+    id:
+
+pageviews:
+  provider:
+
+actions:
+  edit_post:
+    enabled: false
+
+assets:
+  self_host:
+    enabled: # 空=false。CDN(jsDelivr/Google Fonts)から取得する
+
+# ------------------------------------------------------------------
+# 以下はテーマの動作前提。変更しないこと
+# ------------------------------------------------------------------
+
+markdown: kramdown
+
+kramdown:
+  footnote_backlink: "&#8617;&#xfe0e;"
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    css_class: highlight
+    span:
+      line_numbers: false
+    block:
+      line_numbers: true
+      start_line: 1
+
+collections:
+  tabs:
+    output: true
+    sort_by: order
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+      comments: true
+      toc: true
+      permalink: /posts/:title/
+  - scope:
+      path: _drafts
+    values:
+      comments: false
+  - scope:
+      path: ""
+      type: tabs
+    values:
+      layout: page
+      permalink: /:title/
+
+sass:
+  style: compressed
+
+compress_html:
+  clippings: all
+  comments: all
+  endings: all
+  profile: false
+  blanklines: false
+  ignore:
+    envs: [development]
+
+jekyll-archives:
+  enabled: [categories, tags]
+  layouts:
+    category: category
+    tag: tag
+  permalinks:
+    tag: /tags/:name/
+    category: /categories/:name/
