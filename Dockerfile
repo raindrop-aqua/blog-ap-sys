@@ -12,4 +12,4 @@ RUN bundle install
 
 EXPOSE 4000
 
-CMD ["sh", "-c", "bundle check || bundle install && bundle exec jekyll serve --host 0.0.0.0 --port 4000 --livereload --force_polling"]
+CMD ["sh", "-c", "bundle check || bundle install && bundle exec jekyll serve --host 0.0.0.0 --port 4000 --livereload --force_polling --drafts"]
