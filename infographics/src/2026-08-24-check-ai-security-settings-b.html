@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>AI自身にセキュリティ設定を確認させる（B案）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Lato:wght@700;900&family=Source+Sans+3:wght@400;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #f5f6fb;
+    --card: #ffffff;
+    --ink: #1c1b2e;
+    --muted: #6a6880;
+    --line: #e2e2ee;
+    --indigo: #4f46e5;
+    --indigo-deep: #2f2a8f;
+    --indigo-soft: #eceaff;
+    --amber: #d97706;
+    --amber-soft: #fff3dd;
+  }
+
+  body {
+    width: 1600px; height: 900px;
+    background: var(--bg); color: var(--ink);
+    font-family: 'Source Sans 3', 'BIZ UDPGothic', sans-serif;
+    font-feature-settings: 'palt' 1;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+
+  /* ---------- ヘッダ帯 ---------- */
+  .band {
+    position: relative; overflow: hidden;
+    background: linear-gradient(115deg, #3b34b8 0%, #4f46e5 55%, #6a5cf0 100%);
+    color: #fff; padding: 40px 60px 38px;
+  }
+  .band::after {
+    content: ''; position: absolute; right: -120px; top: -150px;
+    width: 520px; height: 520px; border-radius: 50%;
+    background: rgba(255,255,255,.07);
+  }
+  .band .site { font-family: Lato, sans-serif; font-weight: 700; font-size: 15px; letter-spacing: .2em; color: #c8c4ff; margin-bottom: 14px; }
+  .band h1 { font-family: Lato, 'BIZ UDPGothic', sans-serif; font-weight: 900; font-size: 52px; line-height: 1.22; }
+  .band h1 em { font-style: normal; color: #ffd88a; }
+  .band .lede { margin-top: 14px; font-size: 22px; color: #dddaff; line-height: 1.55; }
+  .band .cat {
+    position: absolute; right: 60px; top: 44px; z-index: 1;
+    border: 1.5px solid rgba(255,255,255,.45); border-radius: 999px;
+    padding: 7px 18px; font-size: 16px; color: #fff;
+  }
+
+  /* ---------- ステップ ---------- */
+  .steps { display: flex; align-items: stretch; gap: 0; padding: 34px 60px 0; }
+  .step { flex: 1; display: flex; flex-direction: column; }
+  .step .cap { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .step .no {
+    font-family: Lato, sans-serif; font-weight: 900; font-size: 15px; letter-spacing: .1em;
+    color: #fff; background: var(--indigo); border-radius: 7px; padding: 4px 11px;
+  }
+  .step .cap b { font-size: 17px; color: var(--muted); font-weight: 700; letter-spacing: .04em; }
+
+  .panel {
+    flex: 1; background: var(--card); border: 1.5px solid var(--line); border-radius: 18px;
+    padding: 24px 26px; display: flex; flex-direction: column;
+    box-shadow: 0 2px 0 rgba(28,27,46,.04);
+  }
+  .panel h3 { font-size: 25px; line-height: 1.42; font-weight: 700; }
+  .panel p { margin-top: 12px; font-size: 17px; line-height: 1.72; color: var(--muted); }
+  .panel .icon { position: absolute; }
+
+  .chev { flex: none; width: 62px; display: grid; place-items: center; }
+  .chev svg { width: 26px; height: 34px; }
+
+  /* 中央パネルのプロンプト */
+  .promptbox {
+    margin-top: 14px; background: #1d1c2c; border-radius: 12px; padding: 15px 17px;
+    font-family: 'Source Code Pro', 'BIZ UDPGothic', monospace;
+    font-size: 16.5px; line-height: 1.6; color: #f1f0fb;
+  }
+  .promptbox b { color: #ffd88a; font-weight: 600; }
+
+  .miss {
+    margin-top: auto; background: var(--amber-soft); border-left: 4px solid var(--amber);
+    border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 15.5px; line-height: 1.6; color: #8a5209;
+  }
+
+  .tick { display: flex; flex-direction: column; gap: 11px; margin-top: 16px; }
+  .tick div { display: flex; gap: 10px; align-items: flex-start; font-size: 16.5px; line-height: 1.6; color: var(--muted); }
+  .tick svg { width: 19px; height: 19px; flex: none; margin-top: 4px; }
+
+  /* ---------- 4ツール ---------- */
+  .tools { margin: 26px 60px 0; }
+  .tools .cap { display: flex; align-items: baseline; gap: 14px; margin-bottom: 14px; }
+  .tools .cap b { font-size: 20px; font-weight: 700; }
+  .tools .cap span { font-size: 16.5px; color: var(--muted); }
+  .strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .tool {
+    background: var(--card); border: 1.5px solid var(--line); border-radius: 14px;
+    padding: 16px 18px 15px; border-top: 4px solid var(--tint, var(--indigo));
+  }
+  .tool .n { font-family: Lato, sans-serif; font-weight: 700; font-size: 20px; color: var(--tint); }
+  .tool .t { margin-top: 7px; font-size: 18px; font-weight: 700; line-height: 1.45; }
+  .tool .d { margin-top: 6px; font-size: 15.5px; line-height: 1.6; color: var(--muted); }
+
+  /* ---------- フッタ ---------- */
+  footer {
+    margin: auto 60px 0; padding: 14px 0 22px;
+    display: flex; align-items: center; gap: 12px; font-size: 16px; color: var(--muted);
+  }
+  footer .when { margin-left: auto; font-family: 'Source Code Pro', monospace; font-size: 14.5px; }
+</style>
+</head>
+<body>
+
+  <div class="band">
+    <div class="cat">生成AIのきほん ／ 入口</div>
+    <div class="site">明日使える生成AI</div>
+    <h1>セキュリティ設定は、<em>AI自身に確認させる</em></h1>
+    <p class="lede">置き場所も呼び方もツールごとに違う。覚えるより、使うたびに聞いたほうが速い。</p>
+  </div>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="cap"><span class="no">STEP 1</span><b>気づく</b></div>
+      <div class="panel">
+        <h3>覚えても、<br>すぐ使えなくなる</h3>
+        <p>「入力内容を学習に使うか」の設定は4つとも持っている。ただし項目名も階層も既定値も揃っていない。</p>
+        <div class="miss">個人プランと会社支給の環境で既定値が違うこともある</div>
+      </div>
+    </div>
+
+    <div class="chev">
+      <svg viewBox="0 0 26 34" fill="none" stroke="#b9b7cd" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4 L20 17 L7 30"/></svg>
+    </div>
+
+    <div class="step">
+      <div class="cap"><span class="no">STEP 2</span><b>そのまま聞く</b></div>
+      <div class="panel">
+        <h3>目の前のAIに、<br>自分の設定を確認させる</h3>
+        <div class="promptbox">今の私の<b>【製品名】</b>のセキュリティ設定はどうなっていますか？　問題があるようであれば見直ししたいので、一通り確認してください。</div>
+        <div class="miss">製品名は省かない。「AIの設定は」だと聞き返されて一往復増える</div>
+      </div>
+    </div>
+
+    <div class="chev">
+      <svg viewBox="0 0 26 34" fill="none" stroke="#b9b7cd" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4 L20 17 L7 30"/></svg>
+    </div>
+
+    <div class="step">
+      <div class="cap"><span class="no">STEP 3</span><b>突き合わせる</b></div>
+      <div class="panel">
+        <h3>鵜呑みにせず、<br>設定画面と見比べる</h3>
+        <div class="tick">
+          <div>
+            <svg viewBox="0 0 20 20" fill="none" stroke="#4f46e5" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 L8 15.5 L17 4.5"/></svg>
+            <span>4つとも、読めない範囲は「読めない」と申告してきた</span>
+          </div>
+          <div>
+            <svg viewBox="0 0 20 20" fill="none" stroke="#4f46e5" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 L8 15.5 L17 4.5"/></svg>
+            <span>表で返ってきた内容は、実際の画面と一致していた</span>
+          </div>
+          <div>
+            <svg viewBox="0 0 20 20" fill="none" stroke="#4f46e5" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 L8 15.5 L17 4.5"/></svg>
+            <span>分からない項目は、同じチャットでそのまま聞き返せる</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="tools">
+    <div class="cap"><b>同じ質問への、4つの返り方</b><span>― 個人アカウントで検証</span></div>
+    <div class="strip">
+      <div class="tool" style="--tint:#10a37f">
+        <div class="n">ChatGPT</div>
+        <div class="t">表で一覧にして返す</div>
+        <div class="d">気になる箇所まで指摘。筆者は「メモリ」が挙がった。</div>
+      </div>
+      <div class="tool" style="--tint:#d97757">
+        <div class="n">Claude</div>
+        <div class="t">まず「見えません」と謝る</div>
+        <div class="d">申告したうえでチェックリストを作ってくれる。</div>
+      </div>
+      <div class="tool" style="--tint:#4285f4">
+        <div class="n">Gemini</div>
+        <div class="t">アカウント側へ誘導する</div>
+        <div class="d">設定がGoogle側に集約。リンク提示中心であっさり。</div>
+      </div>
+      <div class="tool" style="--tint:#7719aa">
+        <div class="n">Copilot</div>
+        <div class="t">周辺サービスまで診断</div>
+        <div class="d">2段階認証やサインイン履歴の不審なアクセスまで。</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>まずは個人アカウントで一度やっておく。現場にAIが入ったとき、何を確認すべきか分かっている側に立てる。</span>
+    <span class="when">検証: 2026-08</span>
+  </footer>
+
+</body>
+</html>
