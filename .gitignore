@@ -79,3 +79,8 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+### インフォグラフィックの中間生成物 ###
+# render.sh の出力先。公開するPNGは site/assets/img/posts/ にコピーするので
+# ここはビルド成果物として追跡しない
+infographics/out/
