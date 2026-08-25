@@ -4,6 +4,9 @@ title: "生成AIのセキュリティ設定、AI自身に確認させる ― Cha
 date: 2026-08-24
 categories: [生成AIのきほん]
 tags: [ChatGPT, Claude, Gemini, Copilot, セキュリティ, 入口]
+image:
+  path: /assets/img/posts/2026-08-24-check-ai-security-settings.png
+  alt: 設定の置き場所はツールごとに違う。同じプロンプトを4つに投げると、返り方も4者4様だった
 ---
 
 生成AIを使い始めたものの、設定画面は一度も開いていない。この記事はそういう方に向けて書いています。入力した内容が学習に使われるかどうかの設定は、ツールごとに置き場所も呼び方も違います。そこで筆者は、AI自身に自分の設定を確認させるようにしました。ChatGPT・Claude・Gemini・Microsoft Copilotの4つに同じ質問を投げた結果を載せます（2026年8月時点）。

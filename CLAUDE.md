@@ -45,6 +45,8 @@ Important: a post whose filename date is in the future will not be published —
 
 記事にする前のネタは `/add-idea` スキル（`.claude/skills/add-idea/SKILL.md`）で `docs/planning/article-backlog.md` に足す。思いつき・その日の一次体験・ニュースなど外部情報のどれからでも起こせるほか、素材が無い状態からネタ出しを頼むこともできる。切り口出しは `idea-generator`、ネタ帳に積んでよいかの審査（既存48本との重複、カテゴリ・型・段階タグの確定、価値の3軸、公開順への影響）は `idea-reviewer` サブエージェントが担当する。
 
+記事に付けるインフォグラフィック風のヘッダー画像は `/add-infographic` スキル（`.claude/skills/add-infographic/SKILL.md`）で作る。記事本文から載せる要素を拾い、`infographics/template.html` を差し替えてPNGに焼き、front matter の `image:` まで追記する。詳細は後述の「Infographics」。
+
 書きかけは `site/_drafts/` に置く。GitHub Actions のビルド（`jekyll build`）は `_drafts` を含めないので push しても公開されず、ローカルの `./preview.sh` は `--drafts` 付きで起動するため見た目だけ確認できる。
 
 以下は保存する記事そのものの仕様。
@@ -63,11 +65,39 @@ tags: [ツール名, 職種/シーン, キーワード, 段階タグ]
 ---
 ```
 
+Optional, for the header image (see Infographics below):
+
+```yaml
+image:
+  path: /assets/img/posts/2026-08-21-chatgpt-prompt-tips.png
+  alt: 画像の下にキャプションとして表示される一文
+```
+
 - `categories` is a single large classification. It drives the `/categories/<name>/` listing page and the sidebar's カテゴリー tab — the main way readers reach older posts — but it is *not* part of the post URL (posts live at `/posts/<filename-slug>/`). Keep to the fixed taxonomy in `docs/planning/content-strategy.md` section 3 (`生成AIのきほん`, `プロンプト設計`, `業務効率化`, `ツール比較`, `Tips・小技`, `ニュース`, `開発者向け`, `お知らせ`) unless the strategy doc is updated first — don't invent new categories ad hoc.
 - `tags` are cross-cutting keywords (tool name, job role/scene, etc.), multiple allowed. Also add the reader-level tag (`入口` / `ステップアップ` / `現場実践`), which is **determined by the category** — take the default from the category table in `docs/planning/content-strategy.md` section 3 rather than deciding per article. Only `プロンプト設計` and `業務効率化` need a judgment call.
 - Every post must carry more than knowledge. Include at least one of: first-hand experience (what actually happened when it was tried, failures included), the shared-constraint perspective (a client-site engineer writing for client-site engineers), or curation (what to learn first, what to ignore). Before finishing, ask "would ChatGPT give an equal or better answer to this same question?" — if yes, one of those three is missing. `開発者向け` posts drift into pure explanation most easily; see `docs/planning/content-strategy.md` sections 1 and 3.
 - Body is standard Markdown after the front matter. Internal links can use relative paths — `baseurl` is already handled by `_config.yml`.
 - Article shape depends on the category. `docs/planning/content-strategy.md` section 5 maps each category to one of four templates (standard how-to, きほん for concept pieces, comparison, news) and lists the rules for each. Pick the template from that table before drafting — don't default to the how-to shape. Every type leads with the conclusion and states in the first sentence or two whose problem the post solves.
+
+## Infographics
+
+Posts can carry an infographic-style header image, built as HTML/CSS and rendered to PNG. Author with the `/add-infographic` skill rather than by hand — it holds the constraints below and checks the result at real column width.
+
+| Path | Role |
+|---|---|
+| `infographics/template.html` | The one layout template (2カラム型). Copy it; don't edit it in place |
+| `infographics/src/*.html` | Per-post sources. Outside `source: site`, so never published |
+| `infographics/render.sh` | Chrome headless → PNG at 2x, then quantized to 200 colors. Output lands in `infographics/out/` (gitignored) |
+| `site/assets/img/posts/*.png` | The published PNGs |
+
+Rules that are easy to get wrong:
+
+- **The canvas is 1600×840 (40:21).** Chirpy's preview frame is `aspect-ratio: 40/21` with `object-fit: cover`, so a 16:9 image loses 3% off the top and bottom. The same ratio is what OGP wants (1200×630), so one file serves both.
+- **Nothing smaller than 19px on the canvas.** The image renders at roughly 690px in the body column, which turns 19px into about 8px. When the content doesn't fit, cut elements — never shrink the type.
+- Every fact in the image comes from the post body. The image travels further than the post (it becomes the OGP image), so apply `docs/planning/writing-style.md` section 4 一段厳しく, and no emoji per section 2.
+- The header image is a single file and does not follow the light/dark toggle. Images inside the body can, via Chirpy's `{: .light }` / `{: .dark }` class pair.
+
+Rendering needs Google Chrome and ImageMagick (`magick`) on the host — not the Jekyll container.
 
 ## Theme and layout
 
@@ -100,4 +130,4 @@ PWA/service worker is disabled in `_config.yml` (`pwa.enabled: false`) to avoid 
 
 ## What gets published
 
-`_config.yml` sets `source: site`, so only `site/` is a build input. Files at the repo root (`CLAUDE.md`, `README.md`, `docs/`, `Gemfile`, `Dockerfile`, `preview.sh`) are outside the source tree and can never leak into `_site/` — there is deliberately no `exclude:` list to maintain. Anything that should be published has to go under `site/`.
+`_config.yml` sets `source: site`, so only `site/` is a build input. Files at the repo root (`CLAUDE.md`, `README.md`, `docs/`, `infographics/`, `Gemfile`, `Dockerfile`, `preview.sh`) are outside the source tree and can never leak into `_site/` — there is deliberately no `exclude:` list to maintain. Anything that should be published has to go under `site/`.
