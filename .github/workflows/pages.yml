@@ -4,6 +4,9 @@ on:
   push:
     branches: ["main"]
   workflow_dispatch:
+  schedule:
+    # 毎日 00:05 JST (15:05 UTC) — 日付が来た未来日投稿を自動的に公開する
+    - cron: "5 15 * * *"
 
 permissions:
   contents: read
