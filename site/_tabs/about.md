@@ -20,7 +20,7 @@ order: 4
 - `ステップアップ` — 自分の考えを裏付けてもらう、壁打ちする段階
 - `現場実践` — 現場でAI活用を提案し、推進する段階
 
-[カテゴリー](/categories/) / [タグ](/tags/) / [アーカイブ](/archives/) からも辿れます。
+[カテゴリー](/blog-ap-sys/categories/) / [タグ](/blog-ap-sys/tags/) / [アーカイブ](/blog-ap-sys/archives/) からも辿れます。
 
 ## 書かないと決めていること
 
