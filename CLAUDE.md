@@ -99,6 +99,20 @@ Rules that are easy to get wrong:
 
 Rendering needs Google Chrome and ImageMagick (`magick`) on the host — not the Jekyll container.
 
+## Verification data
+
+記事で数字を出す回は、検証の生データを `verification/<記事のファイル名スラッグ>/` に置く。`infographics/src/` と同じく**投稿ファイル名（`YYYY-MM-DD-slug`）でフォルダを切る**。
+
+```
+verification/2026-09-07-ai-friendly-writing-vague-words/
+├── prompts.md   ← 投げた指示と検証条件
+└── *.md         ← 各ツールの出力そのまま
+```
+
+- リポジトリ直下なので `source: site` の外にあり、何を置いても公開されない
+- **gitにはコミットする。** リポジトリが公開されているので、記事の数字の裏付けを読者が直接確認できる
+- ただし**生の出力に常駐先の情報が混ざる回は、そのフォルダを `.gitignore` に足すか、`docs/planning/writing-style.md` 4章の型で抽象化してから置く**。図と同じく、生データは本文より拡散の危険が大きい
+
 ## Theme and layout
 
 The site uses the **Chirpy** theme (`jekyll-theme-chirpy` gem, pinned `~> 7.6` in the root `Gemfile`), not minima. Chirpy needs Jekyll 4.x, so the build no longer goes through the `github-pages` gem — the theme gem pulls in jekyll, jekyll-paginate, jekyll-seo-tag, jekyll-archives, jekyll-sitemap, and jekyll-include-cache as runtime dependencies, and Jekyll auto-requires them. Don't add a `plugins:` list to `_config.yml` for those.
