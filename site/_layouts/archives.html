@@ -1,0 +1,38 @@
+---
+layout: page
+# テーマ同梱の _layouts/archives.html（jekyll-theme-chirpy 7.6.0）の上書き。
+# 変更点は日付の並びだけで、テーマ既定の「日 / 月」を日本語読者向けに「月 / 日」にしている。
+# ja-JP ロケールの df.archives は月の書式しか持たず、並び順はこのレイアウトに直書きされているため、
+# 設定ファイルでは変えられない。
+#
+# 注意: .date.day / .date.month は「1つめの枠 / 2つめの枠」を指すCSSの掛かり先で、
+# 表示している単位とは一致しない。2つめの枠は width:1.4rem 固定なので、
+# クラスごと入れ替えると日付欄の幅が変わり、記事タイトルとタイムラインの点がずれる。
+# クラスはテーマのまま据え置き、表示する値と data-df（JS側のdayjs再描画用）だけを入れ替えている。
+---
+
+<div id="archives" class="pl-xl-3">
+  {% for post in site.posts %}
+    {% assign cur_year = post.date | date: '%Y' %}
+
+    {% if cur_year != last_year %}
+      {% unless forloop.first %}</ul>{% endunless %}
+
+      <time class="year lead d-block">{{ cur_year }}</time>
+      {{ '<ul class="list-unstyled">' }}
+
+      {% assign last_year = cur_year %}
+    {% endif %}
+
+    <li>
+      {% assign ts = post.date | date: '%s' %}
+      <span class="date day" data-ts="{{ ts }}" data-df="MM">{{ post.date | date: '%m' }}</span>
+      <span class="date month small text-muted ms-1" data-ts="{{ ts }}" data-df="/ DD">
+        {{ post.date | date: '/ %d' }}
+      </span>
+      <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+    </li>
+
+    {% if forloop.last %}</ul>{% endif %}
+  {% endfor %}
+</div>
