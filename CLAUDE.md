@@ -125,7 +125,7 @@ Everything the theme provides (layouts, includes, sass, JS bundles, the `ja-JP` 
 | `site/_tabs/*.md` | Sidebar tabs. `order:` sets the position, `icon:` is a Font Awesome class. `about.md` has real content; the other three are just `layout:` stubs the theme fills in |
 | `site/_data/contact.yml` | Sidebar contact icons. The email entry is removed on purpose — `social.email` in `_config.yml` is left blank so the address isn't published |
 | `site/_data/share.yml` | Share buttons under each post (X / Facebook / はてなブックマーク) |
-| `site/_plugins/posts-lastmod-hook.rb` | Sets `last_modified_at` from git history, so edited posts show an updated date |
+| `site/_plugins/posts-lastmod-hook.rb` | Sets `last_modified_at` from git history, so edited posts show an updated date. Needs the full history — `.github/workflows/pages.yml` checks out with `fetch-depth: 0` for this reason; with the default shallow clone the hook silently never fires |
 | `site/_includes/metadata-hook.html` | Chirpy's `<head>` extension point. Loads the Japanese and monospace web fonts |
 | `site/_layouts/archives.html` | Copy of the theme's archives layout, with the date order flipped from the theme's 日/月 to 月/日 so the page reads `2026 / 09 / 07`. No `_config.yml` setting controls this — the order is hardcoded in the layout, and the `ja-JP` locale's `df.archives` only carries a month format string. The `.date.day` / `.date.month` classes there mean "first slot / second slot", not the unit; the second slot is `width: 1.4rem`, so swapping the classes (rather than the values) shifts the whole date column and misaligns the timeline dots |
 | `site/assets/css/jekyll-theme-chirpy.scss` | Style overrides (see below) |
