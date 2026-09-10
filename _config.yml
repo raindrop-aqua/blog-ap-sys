@@ -52,10 +52,15 @@ pwa:
 comments:
   provider: # [disqus | utterances | giscus]
 
+# アクセス解析は GoatCounter（https://blog-ap-sys.goatcounter.com/）
+# スクリプトは JEKYLL_ENV=production のビルドにだけ入るので、ローカルプレビューは計測されない
 analytics:
-  google:
-    id:
+  goatcounter:
+    id: blog-ap-sys
 
+# 記事ページの「○回閲覧」表示。有効にするなら先に GoatCounter の Settings で
+# "allow using the visitor counter" をオンにすること。オフのまま goatcounter を入れると
+# カウンターAPIが403を返し、Chirpy の実装上すべての記事が「1回閲覧」と表示される
 pageviews:
   provider:
 

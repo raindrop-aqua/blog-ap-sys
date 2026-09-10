@@ -143,6 +143,14 @@ All custom CSS lives in `site/assets/css/jekyll-theme-chirpy.scss`, which re-dec
 
 PWA/service worker is disabled in `_config.yml` (`pwa.enabled: false`) to avoid stale-cache confusion on the `baseurl` sub-path.
 
+### Analytics
+
+Access analytics is **GoatCounter** (dashboard: https://blog-ap-sys.goatcounter.com/), wired through Chirpy's built-in support — `analytics.goatcounter.id: blog-ap-sys` in `_config.yml`, no custom include. Google Analytics was rejected as too heavy for this site.
+
+- The script is only emitted when `JEKYLL_ENV=production`, so `./preview.sh` never counts. GoatCounter also ignores `localhost` on its side.
+- To stop counting your own visits to the live site, open any page with `#toggle-goatcounter` appended to the URL and reload — it's a per-browser switch, so repeat it on each browser/device you use.
+- `pageviews.provider` (the 「○回閲覧」 counter on post pages) is deliberately left empty. Before setting it to `goatcounter`, turn on **"allow using the visitor counter"** in GoatCounter's Settings. With that setting off the counter API returns 403, and Chirpy's fallback renders every post as 「1回閲覧」 instead of showing an error.
+
 ## What gets published
 
 `_config.yml` sets `source: site`, so only `site/` is a build input. Files at the repo root (`CLAUDE.md`, `README.md`, `docs/`, `infographics/`, `Gemfile`, `Dockerfile`, `preview.sh`) are outside the source tree and can never leak into `_site/` — there is deliberately no `exclude:` list to maintain. Anything that should be published has to go under `site/`.
