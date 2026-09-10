@@ -58,11 +58,11 @@ analytics:
   goatcounter:
     id: blog-ap-sys
 
-# 記事ページの「○回閲覧」表示。有効にするなら先に GoatCounter の Settings で
-# "allow using the visitor counter" をオンにすること。オフのまま goatcounter を入れると
-# カウンターAPIが403を返し、Chirpy の実装上すべての記事が「1回閲覧」と表示される
+# 記事ページの「○回閲覧」表示。GoatCounter のサイト設定
+# "Allow adding visitor counts on your website" がオンであることが前提（2026-09-11 にオン済み）。
+# オフに戻すとカウンターAPIが403を返し、Chirpy の実装上すべての記事が「1回閲覧」と表示される
 pageviews:
-  provider:
+  provider: goatcounter
 
 actions:
   edit_post:
