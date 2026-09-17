@@ -13,7 +13,7 @@ Tailwind CSSがShopifyに買収されたというニュースを、他人事と�
 
 この買収の背景には、2026年1月にWathan自身が公表した経営危機があります。AIコーディングツールがTailwindのコードを自動生成するようになった結果、公式ドキュメントへのアクセスが40%減少しました。Tailwind Labsはドキュメント経由で有料商品（コンポーネント集のTailwind UIなど）を売る収益構造だったため、フレームワークの利用自体は過去最高に伸びているのに、収益は約80%減、エンジニアの75%を解雇するところまで追い込まれていました。
 
-買収発表そのものはShopify・Tailwind Labs双方の公式発表を一次情報として確認できていませんが、cmswire、devclass、techtimesなど複数の海外メディアが同内容を報じています。
+買収発表そのものはShopify・Tailwind Labs双方の公式発表を一次情報として確認できていませんが、[cmswire](https://www.cmswire.com/digital-experience/shopify-acquires-tailwind-labs-to-secure-css-framework/)、[devclass](https://devclass.com/2026/01/08/tailwind-labs-lays-off-75-percent-of-its-engineers-thanks-to-brutal-impact-of-ai/)、[techtimes](https://www.techtimes.com/articles/327205/20260911/shopify-rescues-tailwind-css-ai-made-it-ubiquitous-while-killing-its-revenue.htm)など複数の海外メディアが同内容を報じています。
 
 ## 現場・業務にどう影響するか
 
