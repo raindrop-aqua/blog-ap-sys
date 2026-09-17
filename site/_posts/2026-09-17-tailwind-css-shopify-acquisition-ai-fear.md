@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "Tailwind CSS買収に見る、AIに「使われる側」になる恐怖"
+date: 2026-09-17
 categories: [ニュース]
 tags: [ステップアップ, Tailwind CSS, Shopify, OSS, キャリア]
 ---
