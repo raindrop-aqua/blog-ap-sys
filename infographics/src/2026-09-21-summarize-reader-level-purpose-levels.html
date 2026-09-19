@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>読む人のレベルを指定すると、同じ論文の説明がどう変わるか</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Lato:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     読者レベル比較（1200 x 可変）。同じ論文の説明を、レベルだけ替えて
+     Claude に出させた5本を、同じ5レーンの型に流し込んで並べて見られるようにする。
+
+     使い方: file://.../this.html#k | #e | #j | #h | #u
+       k=幼稚園児 e=小学生 j=中学生 h=高校生 u=大学生
+
+     文字サイズの下限は 22px（1200幅が本文幅690pxに縮むと約12.6px）。
+     数字は出力に書かれていたものだけを使う。論文と照合して食い違いが
+     見つかった箇所は、.flag（琥珀色のタグ）で示す。不要なら消してよい。
+     ============================================================ */
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --paper: #f4efe4;
+    --card: #fffdf8;
+    --ink: #24221d;
+    --muted: #6c6559;
+    --rule: #ddd3c0;
+    --track: #e9e2d2;
+    --indigo: #4f46e5;
+    --indigo-ink: #3b34b8;
+    --indigo-soft: #ecebff;
+    --indigo-line: #cfccff;
+    --amber: #b45309;
+    --amber-soft: #fdf0dc;
+    --amber-line: #efd3a4;
+  }
+
+  html { background: var(--paper); }
+  body {
+    width: 1200px; min-height: 100vh;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Source Sans 3', 'BIZ UDPGothic', sans-serif;
+    font-feature-settings: 'palt' 1;
+    position: relative;
+  }
+  body::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle, #cabfa8 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    opacity: .35;
+    pointer-events: none;
+  }
+
+  .sheet { position: relative; padding: 40px 48px 34px; }
+
+  /* ---------- 上段 ---------- */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .site { font-family: Lato, sans-serif; font-weight: 700; font-size: 22px; letter-spacing: .14em; color: var(--indigo-ink); }
+  .stepper { display: flex; gap: 8px; }
+  .stepper span {
+    font-size: 22px; padding: 5px 14px; border: 2px solid var(--rule); border-radius: 999px;
+    background: var(--card); color: var(--muted); font-weight: 600;
+  }
+  .stepper span.on { background: var(--indigo); border-color: var(--indigo); color: #fff; font-weight: 700; }
+
+  h1 { margin-top: 22px; font-family: Lato, 'BIZ UDPGothic', sans-serif; font-weight: 900; font-size: 62px; line-height: 1.2; letter-spacing: .01em; }
+  h1 em { font-style: normal; background: linear-gradient(transparent 62%, #ffd88a 62%, #ffd88a 94%, transparent 94%); padding: 0 2px; }
+
+  .aititle { margin-top: 14px; font-size: 26px; line-height: 1.5; color: var(--muted); }
+  .aititle b { color: var(--ink); font-weight: 700; }
+
+  /* ---------- はじめに ---------- */
+  .intro { margin-top: 24px; background: var(--card); border: 2px solid var(--rule); border-radius: 14px; padding: 18px 26px; }
+  .tag { font-size: 22px; font-weight: 700; letter-spacing: .05em; color: var(--muted); margin-bottom: 6px; }
+  .intro p { font-size: 26px; line-height: 1.6; }
+
+  /* ---------- 5レーン ---------- */
+  .lanes { margin-top: 20px; background: var(--card); border: 2px solid var(--rule); border-radius: 14px; }
+  .lane { display: grid; grid-template-columns: 180px 300px 1fr; gap: 22px; padding: 22px 26px; border-top: 2px solid var(--rule); }
+  .lane:first-child { border-top: 0; }
+
+  .ln { display: flex; align-items: flex-start; gap: 12px; }
+  .ln .n {
+    width: 40px; height: 40px; border-radius: 10px; flex: none; display: grid; place-items: center;
+    background: var(--indigo-soft); border: 2px solid var(--indigo-line);
+    font-family: Lato, sans-serif; font-weight: 900; font-size: 22px; color: var(--indigo-ink);
+  }
+  .ln .t { font-size: 24px; font-weight: 700; line-height: 1.35; color: var(--muted); padding-top: 3px; }
+
+  .bars { display: flex; flex-direction: column; gap: 14px; }
+  .bh { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; column-gap: 10px; }
+  .bl { font-size: 22px; color: var(--muted); line-height: 1.3; white-space: nowrap; }
+  .bv { font-family: Lato, 'BIZ UDPGothic', sans-serif; font-size: 32px; font-weight: 900; line-height: 1.15; color: var(--indigo-ink); white-space: nowrap; margin-left: auto; }
+  .amber .bv { color: var(--amber); }
+  .track { position: relative; height: 16px; margin-top: 6px; background: var(--track); border-radius: 4px; overflow: hidden; }
+  .track i { position: absolute; top: 0; bottom: 0; left: 0; background: var(--indigo); border-radius: 4px; }
+  .amber .track i { background: var(--amber); }
+  .track i.range { background: var(--amber); opacity: .38; border-radius: 0 4px 4px 0; }
+  .track i.solid { border-radius: 4px 0 0 4px; }
+  .track i.fade { background: linear-gradient(90deg, var(--indigo), rgba(79,70,229,0)); border-radius: 0; }
+  .track.split i.a { left: 0; width: calc(50% - 2px); background: var(--indigo); }
+  .track.split i.b { left: calc(50% + 2px); width: calc(50% - 2px); background: var(--amber); }
+  .splitlab { display: flex; justify-content: space-between; margin-top: 6px; font-size: 22px; color: var(--muted); }
+
+  .txt { font-size: 26px; line-height: 1.62; }
+  .flag {
+    display: inline-block; margin-top: 10px; padding: 4px 12px; border-radius: 8px;
+    background: var(--amber-soft); border: 2px solid var(--amber-line);
+    font-size: 22px; line-height: 1.4; color: var(--amber); font-weight: 700;
+  }
+
+  /* ---------- 結論・注意・用語 ---------- */
+  .box { margin-top: 18px; border-radius: 14px; padding: 18px 26px; }
+  .concl { background: var(--indigo-soft); border: 2px solid var(--indigo-line); }
+  .concl .tag { color: var(--indigo-ink); }
+  .concl p { font-size: 26px; line-height: 1.6; }
+  .notes { background: var(--amber-soft); border: 2px solid var(--amber-line); }
+  .notes .tag { color: var(--amber); }
+  .notes ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .notes li { font-size: 24px; line-height: 1.55; padding-left: 26px; position: relative; }
+  .notes li::before { content: ''; position: absolute; left: 4px; top: .62em; width: 10px; height: 10px; border-radius: 3px; background: var(--amber); }
+  .terms { background: var(--card); border: 2px solid var(--rule); }
+  .terms dl { display: flex; flex-direction: column; gap: 6px; }
+  .terms .row { display: grid; grid-template-columns: 230px 1fr; gap: 18px; font-size: 24px; line-height: 1.55; }
+  .terms dt { font-weight: 700; }
+  .terms dd { color: var(--ink); }
+
+  footer { margin-top: 18px; font-size: 22px; line-height: 1.5; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="sheet" id="root"></div>
+
+<script>
+/* ------------------------------------------------------------
+   データ。文言は各レベルの出力（Claude sonnet 5）から抜粋。
+   長いものは一部省略しているが、数字は出力に書かれていたものだけ。
+   b: 棒。p=長さ(%), v=表示する値, l=ラベル
+       open=「以上」の開いた端, range=[下限,上限]の幅, c='amber'で2本目の色
+   split: 賛否の半々表示。
+   ------------------------------------------------------------ */
+const LANES = ['使う人', '使い方', '著作権', '無断学習', '全体評価'];
+const STEPS = [['k','幼稚園児'],['e','小学生'],['j','中学生'],['h','高校生'],['u','大学生']];
+
+const D = {
+ k: {
+  name: '幼稚園児',
+  aititle: '絵をかく人たちは、AIの絵をどう思っているの？',
+  introTag: 'どんなお話？',
+  intro: '最近、言葉を入れるだけで絵をかいてくれる「AI」（コンピューターのふしぎな先生）ができました。絵をかく人たち1,042人に「AIの絵、どう思う？」と聞いてみたお話です。',
+  lanes: [
+   { t: '絵をかく人のうち、AIを使っている人は4人に1人でした。',
+     b: [{ l: 'AIを使っている', v: '4人に1人', p: 25 }] },
+   { t: '使い方の半分くらいは「どんな絵にしようかな」と考えるヒントにするためで、AIの絵を外に出さない使い方です。',
+     b: [{ l: '外に出さない', v: '半分くらい', p: 50 }] },
+   { t: '半分より多い人が「たくさん手を加えたら、その人の絵だよ」と答えました。でも、2〜3人に1人は「どんなに手を加えても、AIの絵はその人の絵と言えないよ」と答えました。',
+     b: [{ l: '認める', v: '半分より多い', p: 50, open: true },
+         { l: '認めない', v: '2〜3人に1人', range: [20, 30], c: 'amber' }],
+     flag: '数字のずれ: 論文は「2〜3割」＝10人に2〜3人。2〜3人に1人だと言い過ぎ' },
+   { t: 'AIは、ほかの人がかいた絵をたくさん見てお勉強します。これを「ダメだと思う」人が10人中6人、「いいと思う」人が10人中3人でした。',
+     b: [{ l: 'ダメだと思う', v: '10人中6人', p: 60 },
+         { l: 'いいと思う', v: '10人中3人', p: 30, c: 'amber' }] },
+   { t: '「AIっていいね」と思う人と「こまるなあ」と思う人が、同じくらいでした。',
+     split: { v: '同じくらい', a: 'いいね', b: 'こまるなあ' } }
+  ],
+  concl: 'みんなまだ、AIの使い方を試している最中です。だから、ルールを急いで決めないで、もう少し様子を見たほうがいいと言っています。',
+  notesTag: 'ご注意',
+  notes: [
+   '「著作権」などのむずかしい言葉は、ぜんぶやさしい言い方に置きかえました。',
+   'この調査は「原因と結果」までは確かめきれていない部分があります。たとえば、女の人のほうがAIにきびしい理由は、論文でも「よくわからない」と書かれています。'
+  ],
+  termsTag: '用語の説明',
+  terms: [['AI', 'コンピューターのふしぎな先生']]
+ },
+
+ e: {
+  name: '小学生',
+  aititle: '「画像生成AIについて、絵を描く人たちはどう思っている？」',
+  introTag: 'この研究は何をしたの？',
+  intro: 'マンガやイラストを描く人たち1042人に、画像生成AIをどう思うかをアンケートで聞きました（2023年9月）。',
+  lanes: [
+   { t: '絵を描く人のうち、AIを使っているのは約27%でした。',
+     b: [{ l: 'AIを使っている', v: '約27%', p: 27 }] },
+   { t: 'AIで作った絵をそのまま発表するのではなく、「アイデアの参考にする」「おもしろいから遊ぶ」という使い方が半分くらいありました。「手で描く絵が減った」人と「増えた」人は同じくらいでした。',
+     b: [{ l: '発表しない', v: '半分くらい', p: 50 }],
+     flag: '数字のずれ: 論文では「増えた」38%、「減った」29%' },
+   { t: '自分でたくさん手を加えたなら、半数以上の人が「著作権を認めていい」と答えました。でも、どれだけ手を加えても認めないという人も2〜3割いました。',
+     b: [{ l: '認める', v: '半数以上', p: 50, open: true },
+         { l: '認めない', v: '2〜3割', range: [20, 30], c: 'amber' }] },
+   { t: '「作った人に断らず、お金も払わずにやるのは問題だ」と考える人が約6割でした。「人間だって他の人の絵を見て上達するのだから問題ない」という人も約3割いました。',
+     b: [{ l: '問題だ', v: '約6割', p: 60 },
+         { l: '問題ない', v: '約3割', p: 30, c: 'amber' }] },
+   { t: '賛成と反対がほぼ半々でした。ネットでは反対の声が目立ちますが、実際には賛成の人も多いのです。',
+     split: { v: 'ほぼ半々', a: '賛成', b: '反対' } }
+  ],
+  concl: '今は、みんながAIの使い方を試している途中（過渡期）です。そのため、研究者は「ルールを急いで決めず、しばらく様子を見たほうがいい」と考えています。これは研究者たちの意見であり、別の考え方もあると思います。',
+  notesTag: '分からないこと・気をつけたいこと',
+  notes: [
+   '論文自身も、女性のほうがAIに否定的な理由は「よくわからない」と書いています。',
+   '「問題だと思う」と答えた人が、どのくらい深刻に考えているかは、このアンケートだけでは分かりません。',
+   'これはアンケートの結果なので、「何が原因でそう思うのか」まではっきりとは言えません。'
+  ],
+  termsTag: '用語の説明',
+  terms: [
+   ['画像生成AI', '「猫が空を飛んでいる絵」のように言葉で伝えると、AIが絵を作ってくれる道具'],
+   ['著作権', '「この絵は私が作ったものです」と守る権利']
+  ]
+ },
+
+ j: {
+  name: '中学生',
+  aititle: '「画像生成AIについて、絵を描く人たちはどう思っている?」',
+  introTag: 'まず、この資料は何?',
+  intro: '国際大学の研究者たちが書いた調査報告です（2024年4月）。2023年9月に、漫画・イラスト・絵画を描いている人1,042人にアンケートを行いました。',
+  lanes: [
+   { t: '使っているのは、若い人、男性、収入が高い人、大学卒の人、コミケに熱心に参加している人が多め。プロかアマチュアかは関係ありませんでした。',
+     b: [{ l: 'AIを使っている', v: '27%', p: 27 }] },
+   { t: '約半分は「アイデアのヒントにする」「おもしろいから試す」といった使い方で、AIの絵を世に出していません。6割以上が「短い時間でたくさん作れるようになった」と答えました。手で描く枚数は「増えた」38%、「減った」29%。',
+     b: [{ l: '世に出さない', v: '約半分', p: 50 }] },
+   { t: '手を加える量が大きいほど、認める人が増えます。大きく加工すれば5〜6割が認めますが、どんなに加工しても認めない人も2〜3割いました。',
+     b: [{ l: '認める（大加工）', v: '5〜6割', range: [50, 60], c: 'ind' },
+         { l: '認めない', v: '2〜3割', range: [20, 30], c: 'amber' }] },
+   { t: '約6割が「問題だ」と答えました。一方、「人間も他人の絵を見て学ぶのだから問題ない」という人も約3割いました。',
+     b: [{ l: '問題だ', v: '約6割', p: 60 },
+         { l: '問題ない', v: '約3割', p: 30, c: 'amber' }] },
+   { t: '全体としての評価は「真っ二つ」。SNSでは批判の声が目立ちますが、調査では批判派が多数とは言えませんでした。',
+     split: { v: '真っ二つ', a: '良い面', b: '心配な面' } }
+  ],
+  concl: '賛成と反対が同じくらいで、みんなが試行錯誤している「過渡期」です。そのため、国は急いで厳しいルールを作らず、しばらく様子を見るのがよいと述べています。',
+  notesTag: '読むときの注意',
+  notes: [
+   'アンケートなので、「AIを使うから肯定的になった」のか「肯定的だから使う」のかは、はっきり分かりません。',
+   '「女性のほうがAIに否定的」という結果が出ていますが、理由は筆者たちにも分かっていません。',
+   '「学習を問題だと思う」といっても、どの程度深刻に考えているかまでは分からないと、筆者自身が書いています。'
+  ],
+  termsTag: '先に知っておきたい言葉',
+  terms: [
+   ['画像生成AI', '「猫が空を飛んでいる絵」のように言葉で指示すると、絵を作ってくれるAI'],
+   ['著作権', '絵を描いた人が持つ「勝手にコピーや利用をされない権利」'],
+   ['コミケ', '同人誌（自分たちで作った本）を売り買いするイベント']
+  ]
+ },
+
+ h: {
+  name: '高校生',
+  aititle: '「画像生成AIについてのクリエイターの賛否は割れている」をやさしく解説',
+  introTag: 'どんな研究？',
+  intro: '絵を描く人1,042人へのアンケート（2023年9月調査、2024年4月発表）。結論は、クリエイターの意見は賛成と反対でほぼ半々に割れている、ということです。',
+  lanes: [
+   { t: '「見たことはあるが使ったことはない」人が46%で最多。使っている人は、コミケに長く参加している人、若い人、男性、高収入の人、大卒が多め。プロかアマかは関係なし。',
+     b: [{ l: 'AIを使っている', v: '27%', p: 27 }] },
+   { t: 'AIが作った絵を公開しない使い方（ヒントにする、面白いから遊ぶ）が約半分。手で描く枚数は「増えた」38%が「減った」29%をやや上回りました。',
+     b: [{ l: '公開しない', v: '約半分', p: 50 }] },
+   { t: '大きく加工した場合は5〜6割が認めます。ただし、どれだけ加工しても認めない人が2〜3割いました。',
+     b: [{ l: '認める（大加工）', v: '5〜6割', range: [50, 60], c: 'ind' },
+         { l: '認めない', v: '2〜3割', range: [20, 30], c: 'amber' }] },
+   { t: '約6割が問題だと考え、問題ないとする人は約3割でした。',
+     b: [{ l: '問題だ', v: '約6割', p: 60 },
+         { l: '問題ない', v: '約3割', p: 30, c: 'amber' }] },
+   { t: '肯定的な意見（表現を助ける、新しい文化が生まれる）にも、否定的な意見（仕事を失う人がいる、努力が無駄になる、規制すべき）にも、賛同する人がいました。',
+     split: { v: '拮抗', a: '肯定的', b: '否定的' } }
+  ],
+  concl: '賛否が割れているのは、みんながまだ試行錯誤している「過渡期」だからだと考えています。政府が急いで厳しいルールを作るより、しばらく様子を見るほうがよいと提案しています。',
+  notesTag: '読むときの注意点',
+  notes: [
+   '「因果関係」までは言えません。「使う人ほど肯定的」でも、どちらが先かはこの調査だけではわかりません。',
+   '質問の作り方で結果が変わります。学習の質問は選択肢Bがとても厳しい言い方だったので、「6割が問題視」は深刻さまでは測れていません。',
+   '著者にも理由がわからない点があります。女性のほうがAIに否定的なのはなぜか、など。',
+   '「様子を見るべき」は調査結果ではなく、著者の考えです。',
+   '調査は2023年9月。今の意見分布が同じかどうかは、この資料だけではわかりません。'
+  ],
+  termsTag: '用語の説明',
+  terms: [
+   ['画像生成AI', '文章で指示すると絵を作ってくれるAI'],
+   ['著作権', '作った人が自分の作品について持つ権利']
+  ]
+ },
+
+ u: {
+  name: '大学生',
+  aititle: '論文の概要（田中ら、国際大学GLOCOM、2024年4月）',
+  introTag: '問いと方法',
+  intro: '問い: 絵を描く人（クリエイター）は、画像生成AIをどう見ているのか。方法: 2023年9月に、漫画・イラスト・絵画を描く1,042人へネットアンケートを実施。',
+  lanes: [
+   { t: '使っている人は27%で、約4分の1。コミケ参加度が高い人、若い人、男性、高所得の人、大卒の人が多い。プロかアマか、描くジャンルは関係なし。',
+     b: [{ l: 'AIを使っている', v: '27%', p: 27 }] },
+   { t: '約半数は、創作のヒント集めや「面白いから」という理由で、出力した絵を公開していません。「短時間でたくさん作れるようになった」は約64%。手描きの枚数は、減った人(29%)より増えた人(38%)がやや多い。',
+     b: [{ l: '公開しない', v: '約半数', p: 50 }] },
+   { t: '大きな加工を加えれば、半数以上が著作権を認めます。それでも2〜3割は「どれだけ加工しても認めない」という強硬派です。',
+     b: [{ l: '認める（大加工）', v: '半数以上', p: 50, open: true },
+         { l: '認めない', v: '2〜3割', range: [20, 30], c: 'amber' }] },
+   { t: '約6割が問題視し、約3割は「人間も他人の絵から学ぶのだから問題ない」。ただし設問が「問題ありと答えやすい」作りなので、どれほど深刻かは分からないと論文自身が述べています。',
+     b: [{ l: '問題視', v: '約6割', p: 60 },
+         { l: '問題ない', v: '約3割', p: 30, c: 'amber' }] },
+   { t: '肯定派と否定派はほぼ拮抗しています。',
+     split: { v: 'ほぼ拮抗', a: '肯定派', b: '否定派' } }
+  ],
+  concl: '多数派はまだなく、今は過渡期である。だから政府は、性急にルールを作らず様子を見るのがよい、と主張しています。',
+  notesTag: '読むときの注意点',
+  notes: [
+   '因果関係は断定できません。',
+   '探索的研究です。ネットモニターの自己申告なので、クリエイター全体を代表するとは限りません。',
+   '説明がついていない結果もあります。女性が一貫してAIに否定的な理由について、論文は「不明」としています。',
+   '調査は2023年9月で、今は2026年です。その後に意見がどう変わったかは、この論文からは分かりません。'
+  ],
+  termsTag: '統計用語のミニ解説',
+  terms: [
+   ['ロジット回帰', '「使う/使わない」のような二択の結果に、年齢や性別などがどれだけ影響するかを調べる手法'],
+   ['限界効果', 'ある条件によって、利用率が何%ポイント変わるかを示した数値'],
+   ['有意(星印)', 'その関係が偶然とは考えにくい、という意味']
+  ]
+ }
+};
+
+/* ------------------------------------------------------------ */
+const key = (location.hash || '#k').slice(1);
+const L = D[key] || D.k;
+
+function bar(b) {
+  const cls = b.c === 'amber' ? 'amber' : '';
+  let fills = '';
+  if (b.range) {
+    const [lo, hi] = b.range;
+    fills = `<i class="solid" style="width:${lo}%"></i>`
+          + `<i class="range" style="left:${lo}%;width:${hi - lo}%;${b.c === 'ind' ? 'background:var(--indigo);opacity:.4' : ''}"></i>`;
+    if (b.c === 'amber') fills = `<i style="width:${lo}%"></i><i class="range" style="left:${lo}%;width:${hi - lo}%"></i>`;
+  } else if (b.open) {
+    fills = `<i class="solid" style="width:${b.p}%"></i><i class="fade" style="left:${b.p}%;width:14%"></i>`;
+  } else {
+    fills = `<i style="width:${b.p}%"></i>`;
+  }
+  return `<div class="${cls}"><div class="bh"><span class="bl">${b.l}</span><span class="bv">${b.v}</span></div><div class="track">${fills}</div></div>`;
+}
+
+function lane(i, ln) {
+  let figure;
+  if (ln.split) {
+    figure = `<div><div class="bh"><span class="bl">賛否の割合</span><span class="bv">${ln.split.v}</span></div>`
+           + `<div class="track split"><i class="a"></i><i class="b"></i></div>`
+           + `<div class="splitlab"><span>${ln.split.a}</span><span>${ln.split.b}</span></div></div>`;
+  } else {
+    figure = ln.b.map(bar).join('');
+  }
+  const flag = ln.flag ? `<div class="flag">${ln.flag}</div>` : '';
+  return `<div class="lane">
+    <div class="ln"><span class="n">${i + 1}</span><span class="t">${LANES[i]}</span></div>
+    <div class="bars">${figure}</div>
+    <div><div class="txt">${ln.t}</div>${flag}</div>
+  </div>`;
+}
+
+const stepper = STEPS.map(([k, n]) => `<span class="${k === key ? 'on' : ''}">${n}</span>`).join('');
+const notes = L.notes.map(n => `<li>${n}</li>`).join('');
+const terms = L.terms.map(([t, d]) => `<div class="row"><dt>${t}</dt><dd>${d}</dd></div>`).join('');
+
+document.getElementById('root').innerHTML = `
+  <div class="top"><div class="site">明日使える生成AI ／ 検証データ</div><div class="stepper">${stepper}</div></div>
+  <h1><em>${L.name}</em>でもわかるように</h1>
+  <div class="aititle">出力のタイトル: <b>${L.aititle}</b></div>
+  <div class="intro"><div class="tag">${L.introTag}</div><p>${L.intro}</p></div>
+  <div class="lanes">${L.lanes.map((ln, i) => lane(i, ln)).join('')}</div>
+  <div class="box concl"><div class="tag">結論</div><p>${L.concl}</p></div>
+  <div class="box notes"><div class="tag">${L.notesTag}　${L.notes.length}点</div><ul>${notes}</ul></div>
+  <div class="box terms"><div class="tag">${L.termsTag}　${L.terms.length}つ</div><dl>${terms}</dl></div>
+  <footer>Claude sonnet 5 に同じPDFを読ませ、読む人のレベルだけ替えて出させた説明（各1回）。文言は出力から抜粋・一部省略。<br>素材: GLOCOM Discussion Paper 24-001「画像生成AIについてのクリエイターの賛否は割れている」（2024年4月）</footer>
+`;
+
+/* レンダリング後の高さをDOMに書き出す（./render用の計測） */
+document.fonts.ready.then(() => {
+  document.documentElement.setAttribute('data-h', String(document.getElementById('root').offsetHeight));
+});
+</script>
+</body>
+</html>
