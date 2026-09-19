@@ -143,6 +143,16 @@ All custom CSS lives in `site/assets/css/jekyll-theme-chirpy.scss`, which re-dec
 
 PWA/service worker is disabled in `_config.yml` (`pwa.enabled: false`) to avoid stale-cache confusion on the `baseurl` sub-path.
 
+### Analytics
+
+Access analytics is **GoatCounter** (dashboard: https://blog-ap-sys.goatcounter.com/), wired through Chirpy's built-in support — `analytics.goatcounter.id: blog-ap-sys` in `_config.yml`, no custom include. Google Analytics was rejected as too heavy for this site.
+
+- The script is only emitted when `JEKYLL_ENV=production`, so `./preview.sh` never counts. GoatCounter also ignores `localhost` on its side.
+- To stop counting your own visits to the live site, open any page with `#toggle-goatcounter` appended to the URL and reload — it's a per-browser switch, so repeat it on each browser/device you use.
+- `pageviews.provider: goatcounter` shows the 「○回閲覧」 counter on post pages. It depends on the GoatCounter site setting **"Allow adding visitor counts on your website"** (in the dashboard's site Settings; off by default — the API error message calls it "allow using the visitor counter"). It was turned on 2026-09-11. If it's ever switched off, the counter API returns 403 and Chirpy's fallback renders every post as 「1回閲覧」 instead of showing an error.
+- Chirpy strips the trailing `/` from the path before querying the counter, while `count.js` sends the canonical URL's path *with* the slash. This is fine: GoatCounter's `Hit.cleanPath` stores every pageview path as `"/" + strings.Trim(path, "/")`, so both sides meet at `/blog-ap-sys/posts/<slug>`. No override of Chirpy's `_includes/pageviews/goatcounter.html` is needed.
+- A post with no recorded visits gets a 404 from the counter API, but the body is still `{"count":"0"}`, so it renders as 「0回閲覧」, not as an error.
+
 ## What gets published
 
 `_config.yml` sets `source: site`, so only `site/` is a build input. Files at the repo root (`CLAUDE.md`, `README.md`, `docs/`, `infographics/`, `Gemfile`, `Dockerfile`, `preview.sh`) are outside the source tree and can never leak into `_site/` — there is deliberately no `exclude:` list to maintain. Anything that should be published has to go under `site/`.
