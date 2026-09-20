@@ -1,0 +1,96 @@
+{
+ "v": 4,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-09-20T09:29:43Z"
+ },
+ "title": "ブログのしくみ解説スライド",
+ "order": [
+  "cover",
+  "agenda",
+  "part1-divider",
+  "overview",
+  "flow",
+  "file",
+  "jekyll",
+  "folders",
+  "preview",
+  "ai-divider",
+  "generative",
+  "predict",
+  "loop",
+  "tokens",
+  "training",
+  "network",
+  "prompt",
+  "weakness",
+  "agent",
+  "part3-divider",
+  "roles",
+  "skill-what",
+  "skill-file",
+  "skill-list",
+  "write-post-flow",
+  "skill-dialog",
+  "skill-infographic",
+  "skill-design",
+  "part4-divider",
+  "agent-what",
+  "agent-file",
+  "skill-vs-agent",
+  "agents-three",
+  "post-reviewer",
+  "part5-divider",
+  "teamwork",
+  "rules",
+  "human",
+  "summary",
+  "qr"
+ ],
+ "cover": "cover",
+ "sections": {
+  "s1": {
+   "description": "今日の話の入り口と、全体の流れ",
+   "start": "cover"
+  },
+  "s2": {
+   "description": "書いた文章が、どうやって公開されるのか。",
+   "start": "part1-divider"
+  },
+  "s3": {
+   "description": "AIは、中で何をしているのか。難しい数式は使わない。",
+   "start": "ai-divider"
+  },
+  "s4": {
+   "description": "AIに渡す「手順書」。このブログでは3つ使っている。",
+   "start": "part3-divider"
+  },
+  "s5": {
+   "description": "別の部屋で働く「専門担当」。このブログでは3人いる。",
+   "start": "part4-divider"
+  },
+  "s6": {
+   "description": "スキルとサブエージェントを、どうつなぐか。人が決めるのはどこか。",
+   "start": "part5-divider"
+  },
+  "s7": {
+   "description": "まとめと、ブログへの案内",
+   "start": "summary"
+  }
+ },
+ "faces": {
+  "zen-maru-gothic": {
+   "family": "Zen Maru Gothic",
+   "href": "https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap"
+  },
+  "biz-udpgothic": {
+   "family": "BIZ UDPGothic",
+   "href": "https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap"
+  },
+  "source-code-pro": {
+   "family": "Source Code Pro",
+   "href": "https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap"
+  }
+ },
+ "designSystems": []
+}
