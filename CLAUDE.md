@@ -156,3 +156,5 @@ Access analytics is **GoatCounter** (dashboard: https://blog-ap-sys.goatcounter.
 ## What gets published
 
 `_config.yml` sets `source: site`, so only `site/` is a build input. Files at the repo root (`CLAUDE.md`, `README.md`, `docs/`, `infographics/`, `Gemfile`, `Dockerfile`, `preview.sh`) are outside the source tree and can never leak into `_site/` — there is deliberately no `exclude:` list to maintain. Anything that should be published has to go under `site/`.
+
+`docs/` has two subfolders: `docs/planning/` holds the three planning docs described at the top, and `docs/reference/` holds reference material about how the blog itself works. Currently that is `docs/reference/blog-mechanism.html`, a self-contained one-page explainer (publishing flow, Jekyll, folder layout, the Claude Code helpers) written for a middle-school reader; open it directly in a browser. It loads web fonts from Google Fonts, so it needs a network connection to render in the intended typeface. When the setup changes (build flow, published folders, skills/agents), update this page along with the sections above.
