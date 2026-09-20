@@ -1,0 +1,80 @@
+{
+ "v": 4,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-09-20T13:33:04Z"
+ },
+ "title": "ブログのひみつ（仕組みと運営）",
+ "order": [
+  "profile",
+  "about-blog",
+  "cover",
+  "agenda",
+  "part1-divider",
+  "flow",
+  "file",
+  "jekyll",
+  "folders",
+  "part2-divider",
+  "rulebooks",
+  "strategy",
+  "backlog",
+  "style",
+  "part3-divider",
+  "skill-what",
+  "skill-list",
+  "write-post-flow",
+  "part4-divider",
+  "agent-what",
+  "agents-three",
+  "teamwork",
+  "summary",
+  "qr"
+ ],
+ "cover": "cover",
+ "sections": {
+  "s0": {
+   "description": "前振り。自己紹介と、運営しているブログの紹介",
+   "start": "profile"
+  },
+  "s1": {
+   "description": "今日の話の入り口と、全体の流れ",
+   "start": "cover"
+  },
+  "s2": {
+   "description": "書いた文章が、Webサイトになって公開されるまで",
+   "start": "part1-divider"
+  },
+  "s3": {
+   "description": "docs/planning にある、3冊の決まりごと",
+   "start": "part2-divider"
+  },
+  "s4": {
+   "description": "AIに渡す「手順書」。このブログでは3つ使っている",
+   "start": "part3-divider"
+  },
+  "s5": {
+   "description": "別の部屋で働く「専門担当」。このブログでは3人いる",
+   "start": "part4-divider"
+  },
+  "s6": {
+   "description": "まとめと、ブログへの案内",
+   "start": "summary"
+  }
+ },
+ "faces": {
+  "zen-maru-gothic": {
+   "family": "Zen Maru Gothic",
+   "href": "https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap"
+  },
+  "biz-udpgothic": {
+   "family": "BIZ UDPGothic",
+   "href": "https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap"
+  },
+  "source-code-pro": {
+   "family": "Source Code Pro",
+   "href": "https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap"
+  }
+ },
+ "designSystems": []
+}
