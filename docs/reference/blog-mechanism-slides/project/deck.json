@@ -1,0 +1,67 @@
+{
+ "v": 4,
+ "createdOnFiles": {
+  "v": 1,
+  "at": "2026-09-20T08:58:30Z"
+ },
+ "title": "ブログのしくみ解説スライド",
+ "order": [
+  "cover",
+  "agenda",
+  "overview",
+  "flow",
+  "file",
+  "jekyll",
+  "folders",
+  "preview",
+  "ai-divider",
+  "generative",
+  "predict",
+  "loop",
+  "tokens",
+  "training",
+  "network",
+  "prompt",
+  "weakness",
+  "agent",
+  "helpers",
+  "chain",
+  "human",
+  "summary",
+  "qr"
+ ],
+ "cover": "cover",
+ "sections": {
+  "s1": {
+   "description": "今日の話の入り口と全体の流れ",
+   "start": "cover"
+  },
+  "s2": {
+   "description": "記事がWebサイトになって公開されるまでのしくみ",
+   "start": "overview"
+  },
+  "s3": {
+   "description": "生成AIが文章を作るしくみを、たとえ話で順番に",
+   "start": "ai-divider"
+  },
+  "s4": {
+   "description": "まとめと、ブログへの案内",
+   "start": "summary"
+  }
+ },
+ "faces": {
+  "zen-maru-gothic": {
+   "family": "Zen Maru Gothic",
+   "href": "https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap"
+  },
+  "biz-udpgothic": {
+   "family": "BIZ UDPGothic",
+   "href": "https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap"
+  },
+  "source-code-pro": {
+   "family": "Source Code Pro",
+   "href": "https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap"
+  }
+ },
+ "designSystems": []
+}
