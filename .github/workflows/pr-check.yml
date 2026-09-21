@@ -1,0 +1,36 @@
+name: Check PR
+
+# PR の時点で画像リンク切れを知らせる。デプロイはしない（デプロイは pages.yml が main への push で行う）
+on:
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "pr-check-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  check-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+      - name: Build with Jekyll
+        # --future: 日付が未来の記事もビルドに含める。公開日を待たずに、書いた時点で画像を検査するため
+        run: bundle exec jekyll build --future
+        env:
+          JEKYLL_ENV: production
+      - name: Check image links
+        run: |
+          baseurl=$(sed -n 's/^baseurl: *"\(.*\)".*/\1/p' _config.yml)
+          scripts/check-images.sh _site "$baseurl"
