@@ -45,6 +45,10 @@ container exec blog-preview sh -c 'JEKYLL_ENV=production bundle exec jekyll buil
 
 Important: a post whose filename date is in the future will not be published — the `date` front matter must match the filename date.
 
+## Commits and PRs
+
+Claude が作るコミットは、メッセージの末尾に `Co-Authored-By:` の行を付ける。PR の説明は、末尾に `🤖 Generated with [Claude Code](https://claude.com/claude-code)` を付ける。コミットの行の文面（モデル名）は、その時のセッションで指示されたものを使い、ここには固定しない。`git commit` の前に、この行を書いたかを確かめる。
+
 ## Writing posts
 
 記事を1本書くときは、まず `/write-post` スキル（`.claude/skills/write-post/SKILL.md`）を使う。ネタ選び → 一次体験のヒアリング → 構成 → 下書き → 校閲 → 保存 → 周辺ドキュメント更新までを対話で通す手順書で、`docs/planning/` の3本をフェーズごとに読み直す作りになっている。書き上がった下書きの校閲は `post-reviewer` サブエージェント（`.claude/agents/post-reviewer.md`）が担当する。
