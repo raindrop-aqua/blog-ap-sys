@@ -1,0 +1,27 @@
+読んだファイル: 46本 / 集計した呼び出し: 38件 / 期間: 2026-08-22 〜 2026-09-21（UTC）
+
+種類  名前                    呼び出し  内訳                セッション数  最初         最後         
+------------------------------------------------------------------------------------
+スキル  write-post               8  /打鍵8 自動0               8  2026-08-23 2026-09-19 
+スキル  add-idea                 4  /打鍵2 自動2               4  2026-09-19 2026-09-19 
+スキル  add-infographic          5  /打鍵2 自動3               5  2026-08-25 2026-09-19 
+エージェント  idea-generator           2                         2  2026-09-19 2026-09-21 
+エージェント  idea-reviewer            4                         4  2026-09-19 2026-09-21 
+エージェント  post-reviewer            6                         6  2026-08-23 2026-09-19 
+
+月別の呼び出し回数
+名前                  2026-08  2026-09
+write-post                4        4
+add-idea                  0        4
+add-infographic           2        3
+idea-generator            0        2
+idea-reviewer             0        4
+post-reviewer             2        4
+
+参考: 上の6本以外で、呼び出しが多かった名前（上位8）
+  スキル  artifact-design: 3
+  スキル  natural-japanese: 2
+  スキル  artifact-diagramming: 1
+  エージェント  claude-code-guide: 1
+  スキル  init: 1
+  スキル  dataviz: 1
