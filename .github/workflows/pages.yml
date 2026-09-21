@@ -39,6 +39,9 @@ jobs:
         run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
+      - name: Check image links
+        # 本文の画像パスに baseurl を二重に付けるなどしてリンク切れになっていないか、公開前に確かめる
+        run: scripts/check-images.sh _site "${{ steps.pages.outputs.base_path }}"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:

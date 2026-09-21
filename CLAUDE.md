@@ -30,6 +30,12 @@ Once running, the site is at `http://localhost:4000/blog-ap-sys/` — the `/blog
 
 There is no separate lint/test/build command — Jekyll build errors surface in the `container` logs when `preview.sh` is running, and the real build happens via GitHub Actions on push (see below).
 
+The one exception is `scripts/check-images.sh`, which walks every `<img>` in a built site and fails if the referenced file doesn't exist (doubled or missing `baseurl`, typos in the filename, a forgotten PNG). GitHub Actions runs it right after `jekyll build`, so a broken image stops the deploy. To run it before pushing, while `preview.sh` is up (Ruby lives in the container, not on the host):
+
+```sh
+container exec blog-preview sh -c 'JEKYLL_ENV=production bundle exec jekyll build -d /tmp/site-check --baseurl /blog-ap-sys && sh scripts/check-images.sh /tmp/site-check /blog-ap-sys'
+```
+
 ## Publishing flow
 
 1. Add a post file under `site/_posts/` (see naming/front matter rules below) and commit/push to GitHub.
@@ -77,6 +83,7 @@ image:
 - `tags` are cross-cutting keywords (tool name, job role/scene, etc.), multiple allowed. Also add the reader-level tag (`入口` / `ステップアップ` / `現場実践`), which is **determined by the category** — take the default from the category table in `docs/planning/content-strategy.md` section 3 rather than deciding per article. Only `プロンプト設計` and `業務効率化` need a judgment call.
 - Every post must carry more than knowledge. Include at least one of: first-hand experience (what actually happened when it was tried, failures included), the shared-constraint perspective (a client-site engineer writing for client-site engineers), or curation (what to learn first, what to ignore). Before finishing, ask "would ChatGPT give an equal or better answer to this same question?" — if yes, one of those three is missing. `開発者向け` posts drift into pure explanation most easily; see `docs/planning/content-strategy.md` sections 1 and 3.
 - Body is standard Markdown after the front matter. Internal links can use relative paths — `baseurl` is already handled by `_config.yml`.
+- **`{{ site.baseurl }}` goes on links to other posts only, never on images.** Chirpy prepends `baseurl` to any image path that starts with `/`, so `![alt]({{ site.baseurl }}/assets/img/...)` renders as `/blog-ap-sys/blog-ap-sys/assets/...` and 404s (this shipped once, in `2026-09-21-summarize-reader-level-purpose`). Write body images as `![alt](/assets/img/posts/<slug>-<n>.png)`, the same form as the header image's `path:`. `scripts/check-images.sh` catches this in CI.
 - Article shape depends on the category. `docs/planning/content-strategy.md` section 5 maps each category to one of four templates (standard how-to, きほん for concept pieces, comparison, news) and lists the rules for each. Pick the template from that table before drafting — don't default to the how-to shape. Every type leads with the conclusion and states in the first sentence or two whose problem the post solves.
 
 ## Infographics
