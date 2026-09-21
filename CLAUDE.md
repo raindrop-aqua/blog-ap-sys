@@ -30,7 +30,7 @@ Once running, the site is at `http://localhost:4000/blog-ap-sys/` — the `/blog
 
 There is no separate lint/test/build command — Jekyll build errors surface in the `container` logs when `preview.sh` is running, and the real build happens via GitHub Actions on push (see below).
 
-The one exception is `scripts/check-images.sh`, which walks every `<img>` in a built site and fails if the referenced file doesn't exist (doubled or missing `baseurl`, typos in the filename, a forgotten PNG). GitHub Actions runs it right after `jekyll build`, so a broken image stops the deploy. To run it before pushing, while `preview.sh` is up (Ruby lives in the container, not on the host):
+The one exception is `scripts/check-images.sh`, which walks every `<img>` in a built site and fails if the referenced file doesn't exist (doubled or missing `baseurl`, typos in the filename, a forgotten PNG). GitHub Actions runs it in two places: right after `jekyll build` in `pages.yml`, so a broken image stops the deploy, and on every PR into `main` via `.github/workflows/pr-check.yml`, so it is reported before merging. The PR check builds with `--future`, so a post dated in the future is inspected when written rather than on the day it goes live; the deploy build does not, and never deploys from a PR. To run it before pushing, while `preview.sh` is up (Ruby lives in the container, not on the host):
 
 ```sh
 container exec blog-preview sh -c 'JEKYLL_ENV=production bundle exec jekyll build -d /tmp/site-check --baseurl /blog-ap-sys && sh scripts/check-images.sh /tmp/site-check /blog-ap-sys'
