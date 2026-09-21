@@ -4,6 +4,9 @@ title: "「小学生向けに」と頼むと数字が消える。指示に一言
 date: 2026-09-28
 categories: [Tips・小技]
 tags: [Claude, 要約, プロンプト, ステップアップ]
+image:
+  path: /assets/img/posts/2026-09-28-keep-numbers-when-simplifying.png
+  alt: 一言を足すと、手描きの絵の増38%・減29%が数字で出た回は、6回中0回から5回になった。
 ---
 
 PDFを要約させたら、数字が変わっていた。そういう経験がある方に向けて、指示に足す一言を試しました（[先日の「小学生でもわかるように」記事]({{ site.baseurl }}/posts/summarize-reader-level-purpose/)の追加検証記事です）。

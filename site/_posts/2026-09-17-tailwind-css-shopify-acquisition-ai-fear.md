@@ -4,6 +4,9 @@ title: "Tailwind CSS買収に見る、AIに「使われる側」になる恐怖"
 date: 2026-09-17
 categories: [ニュース]
 tags: [ステップアップ, Tailwind CSS, Shopify, OSS, キャリア]
+image:
+  path: /assets/img/posts/2026-09-17-tailwind-css-shopify-acquisition-ai-fear.png
+  alt: Tailwindは利用が過去最高になる一方、公式ドキュメントの閲覧は40%減、収益は約80%減と報じられている。
 ---
 
 Tailwind CSSがShopifyに買収されたというニュースを、他人事として読み飛ばせる人は少ないはずです。特に、コードを書くこと自体を仕事にしてきた人には。
