@@ -111,10 +111,10 @@ Beforeのほうが分かりやすいなら、情報量を減らす方向を試�
 
 同じ枠に流し込んで並べたのが、次の2枚です。幼稚園児向けの図には、次の節で書く数字のずれの印を付けてあります。
 
-![幼稚園児向けの出力を、使う人・使い方・著作権・無断学習・全体評価の5つの枠に整理した図。注意は2点、用語の説明は1つ]({{ site.baseurl }}/assets/img/posts/2026-09-21-summarize-reader-level-purpose-kindergarten.png)
+![幼稚園児向けの出力を、使う人・使い方・著作権・無断学習・全体評価の5つの枠に整理した図。注意は2点、用語の説明は1つ](/assets/img/posts/2026-09-21-summarize-reader-level-purpose-kindergarten.png)
 _幼稚園児向け（Claude Sonnet 5、2026年9月19日）_
 
-![大学生向けの出力を、同じ5つの枠に整理した図。注意は4点、統計用語の説明は3つ]({{ site.baseurl }}/assets/img/posts/2026-09-21-summarize-reader-level-purpose-university.png)
+![大学生向けの出力を、同じ5つの枠に整理した図。注意は4点、統計用語の説明は3つ](/assets/img/posts/2026-09-21-summarize-reader-level-purpose-university.png)
 _大学生向け（同）_
 
 ### やさしくすると、数字が崩れる
