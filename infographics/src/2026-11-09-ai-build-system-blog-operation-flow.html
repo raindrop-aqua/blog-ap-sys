@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>記事が公開されるまでの流れ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Lato:wght@700;900&family=Source+Sans+3:wght@400;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     全体像の図（1200 x 600）。本文幅(約690px)に縮むと約0.575倍。
+     文字サイズの下限は 22px（縮小後 約12.6px）。
+     図に書く事実はすべて記事本文から取る。
+     ============================================================ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --paper: #f4efe4;
+    --card: #fffdf8;
+    --ink: #24221d;
+    --muted: #6c6559;
+    --rule: #ddd3c0;
+    --human: #4f46e5;
+    --human-soft: #ecebff;
+    --human-line: #cfccff;
+    --ai: #b45309;
+    --ai-soft: #fdf0dc;
+    --ai-line: #efd3a4;
+    --auto: #0f766e;
+    --auto-soft: #dff3ef;
+    --auto-line: #a9dcd3;
+  }
+
+  html { background: var(--paper); }
+  body {
+    width: 1200px; height: 600px; overflow: hidden;
+    background: var(--paper); color: var(--ink);
+    font-family: 'Source Sans 3', 'BIZ UDPGothic', sans-serif;
+    font-feature-settings: 'palt' 1;
+    position: relative;
+  }
+  body::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle, #cabfa8 1px, transparent 1.2px);
+    background-size: 22px 22px; opacity: .35;
+  }
+  .sheet { position: relative; height: 100%; padding: 30px 48px 24px; display: flex; flex-direction: column; }
+
+  /* ---------- 上段 ---------- */
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 14px; border-bottom: 3px solid var(--ink); }
+  h1 { font-family: Lato, 'BIZ UDPGothic', sans-serif; font-weight: 900; font-size: 36px; letter-spacing: .01em; }
+  .legend { display: flex; gap: 22px; font-size: 22px; font-weight: 700; }
+  .legend span { display: inline-flex; align-items: center; gap: 9px; }
+  .legend i { width: 18px; height: 18px; border-radius: 50%; display: inline-block; }
+
+  /* ---------- カード ---------- */
+  .grid {
+    flex: 1; min-height: 0; margin-top: 20px;
+    display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr;
+    column-gap: 46px; row-gap: 22px;
+  }
+  .card {
+    position: relative; background: var(--card); border: 2px solid var(--rule); border-radius: 16px;
+    padding: 16px 20px 14px; display: flex; flex-direction: column;
+  }
+  .card .head { display: flex; align-items: center; gap: 12px; }
+  .card .n {
+    width: 36px; height: 36px; border-radius: 50%; flex: none; display: grid; place-items: center;
+    font-family: Lato, sans-serif; font-weight: 900; font-size: 22px; color: #fff;
+  }
+  .card .name { font-size: 28px; font-weight: 700; line-height: 1.2; }
+  .card .who {
+    margin-left: auto; flex: none; font-size: 22px; font-weight: 700; padding: 1px 12px; border-radius: 999px; border: 2px solid;
+  }
+  .card .tool { margin-top: 8px; font-family: 'Source Code Pro', monospace; font-size: 22px; color: var(--muted); }
+  .card .desc { margin-top: 8px; font-size: 22px; line-height: 1.5; }
+
+  .card.human { border-color: var(--human-line); background: linear-gradient(var(--human-soft), var(--card) 46%); }
+  .card.human .n { background: var(--human); }
+  .card.human .who { color: var(--human); border-color: var(--human-line); background: #fff; }
+  .card.ai { border-color: var(--ai-line); background: linear-gradient(var(--ai-soft), var(--card) 46%); }
+  .card.ai .n { background: var(--ai); }
+  .card.ai .who { color: var(--ai); border-color: var(--ai-line); background: #fff; }
+  .card.auto { border-color: var(--auto-line); background: linear-gradient(var(--auto-soft), var(--card) 46%); }
+  .card.auto .n { background: var(--auto); }
+  .card.auto .who { color: var(--auto); border-color: var(--auto-line); background: #fff; }
+
+  /* 行内の矢印（カードの右外側） */
+  .card.arrow::after {
+    content: ''; position: absolute; top: 50%; right: -40px; width: 32px; height: 32px; margin-top: -16px;
+    background: no-repeat center / contain url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M4 16 H26 M17 7 L27 16 L17 25' fill='none' stroke='%23b6ab95' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  }
+
+  /* ---------- フッタ ---------- */
+  footer { margin-top: 14px; padding-top: 10px; border-top: 1.5px dashed var(--rule); display: flex; align-items: center; gap: 18px; font-size: 22px; color: var(--muted); }
+  footer .key { font-weight: 700; color: var(--ink); font-size: 24px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="top">
+    <h1>記事が公開されるまで</h1>
+    <div class="legend">
+      <span><i style="background:var(--human)"></i>人が決める</span>
+      <span><i style="background:var(--ai)"></i>AIが動く</span>
+      <span><i style="background:var(--auto)"></i>自動で動く</span>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <div class="card human arrow">
+      <div class="head"><span class="n">1</span><span class="name">設計書</span><span class="who">人</span></div>
+      <div class="desc">読者、カテゴリ、文体、公開順を、先に書く</div>
+    </div>
+
+    <div class="card ai arrow">
+      <div class="head"><span class="n">2</span><span class="name">記事を書く</span><span class="who">人＋AI</span></div>
+      <div class="tool">write-post</div>
+      <div class="desc">筆者が体験を話し、Claudeが設計書の構成に成形する</div>
+    </div>
+
+    <div class="card ai">
+      <div class="head"><span class="n">3</span><span class="name">校閲</span><span class="who">AI</span></div>
+      <div class="tool">post-reviewer</div>
+      <div class="desc">別のエージェントが、設計書と照らして指摘する</div>
+    </div>
+
+    <div class="card human arrow">
+      <div class="head"><span class="n">4</span><span class="name">読んで直す</span><span class="who">人</span></div>
+      <div class="desc">筆者が読んで直し、GitHub に push する</div>
+    </div>
+
+    <div class="card auto arrow">
+      <div class="head"><span class="n">5</span><span class="name">ビルド</span><span class="who">自動</span></div>
+      <div class="tool">check-images.sh</div>
+      <div class="desc">サイトを組み立て、画像のリンク切れがあれば止める</div>
+    </div>
+
+    <div class="card auto">
+      <div class="head"><span class="n">6</span><span class="name">公開</span><span class="who">自動</span></div>
+      <div class="desc">GitHub Pages に並ぶ。未来の日付は、その日に公開される</div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span class="key">完全自動ではない。</span>
+    <span>設計書と、最後の push は筆者が持つ</span>
+  </footer>
+
+</div>
+</body>
+</html>
