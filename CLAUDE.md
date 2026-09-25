@@ -55,6 +55,16 @@ Claude が作るコミットは、メッセージの末尾に `Co-Authored-By:` 
 
 記事にする前のネタは `/add-idea` スキル（`.claude/skills/add-idea/SKILL.md`）で `docs/planning/article-backlog.md` に足す。思いつき・その日の一次体験・ニュースなど外部情報のどれからでも起こせるほか、素材が無い状態からネタ出しを頼むこともできる。切り口出しは `idea-generator`、ネタ帳に積んでよいかの審査（既存ネタとの重複、カテゴリ・型・段階タグの確定、価値の3軸、公開順への影響）は `idea-reviewer` サブエージェントが担当する。
 
+サブエージェントには書き手との会話で使う名前と絵文字がある。スキルは書き手にIDではなく名前で伝え、返ってきた結果には名前付きの見出しを付ける。`name:`（ID）はスキルの `subagent_type` から参照しているので変えず、名前は各定義ファイルの `description` の頭と本文の書き出し、frontmatter の `color:` にだけ持たせる。
+
+| ID | 名前 | 役割 | `color:` |
+|---|---|---|---|
+| `idea-generator` | 💡 ヒラク | 起点素材から切り口を拓く | yellow |
+| `idea-reviewer` | 🗃️ クラ | ネタ帳という蔵の番人 | blue |
+| `post-reviewer` | 🖍️ アカネ | 原稿に赤を入れる校閲担当 | red |
+
+サブエージェントを足すときは、同じ形（カタカナ2〜3音・役割から取った由来・絵文字1つ・性別を感じさせない名前）で名前を付け、この表に行を足す。
+
 記事に付けるインフォグラフィック風のヘッダー画像は `/add-infographic` スキル（`.claude/skills/add-infographic/SKILL.md`）で作る。記事本文から載せる要素を拾い、`infographics/template.html` を差し替えてPNGに焼き、front matter の `image:` まで追記する。詳細は後述の「Infographics」。
 
 書きかけは `site/_drafts/` に置く。GitHub Actions のビルド（`jekyll build`）は `_drafts` を含めないので push しても公開されず、ローカルの `./preview.sh` は `--drafts` 付きで起動するため見た目だけ確認できる。
