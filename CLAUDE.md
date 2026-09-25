@@ -36,6 +36,10 @@ The one exception is `scripts/check-images.sh`, which walks every `<img>` in a b
 container exec blog-preview sh -c 'JEKYLL_ENV=production bundle exec jekyll build -d /tmp/site-check --baseurl /blog-ap-sys && sh scripts/check-images.sh /tmp/site-check /blog-ap-sys'
 ```
 
+## Status dashboard
+
+`python3 scripts/dashboard.py` writes `dashboard/index.html` (gitignored) and opens it. It reads only what is already in the repo — posts and drafts, `article-backlog.md` sections 2/3/5, `content-strategy.md` section 7, `verification/_pending-*`, and git — so it never needs hand edits; rerun it to refresh. It flags empty Monday slots, missing `backlog_id`, bridge links that can now be added, `_pending-*` folders ready to rename, and unmerged branches. Link-wait status is inferred from article IDs and is a hint, not a verdict. If a planning doc's section numbers or table shape change, update the parser along with it.
+
 ## Publishing flow
 
 1. Add a post file under `site/_posts/` (see naming/front matter rules below) and commit/push to GitHub.

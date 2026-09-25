@@ -84,3 +84,7 @@ $RECYCLE.BIN/
 # render.sh の出力先。公開するPNGは site/assets/img/posts/ にコピーするので
 # ここはビルド成果物として追跡しない
 infographics/out/
+
+### 運営ダッシュボードの出力 ###
+# scripts/dashboard.py が毎回作り直す。中身はリポジトリから導けるので追跡しない
+dashboard/
