@@ -53,7 +53,7 @@ Claude が作るコミットは、メッセージの末尾に `Co-Authored-By:` 
 
 記事を1本書くときは、まず `/write-post` スキル（`.claude/skills/write-post/SKILL.md`）を使う。ネタ選び → 一次体験のヒアリング → 構成 → 下書き → 校閲 → 保存 → 周辺ドキュメント更新までを対話で通す手順書で、`docs/planning/` の3本をフェーズごとに読み直す作りになっている。書き上がった下書きの校閲は `post-reviewer` サブエージェント（`.claude/agents/post-reviewer.md`）が担当する。
 
-記事にする前のネタは `/add-idea` スキル（`.claude/skills/add-idea/SKILL.md`）で `docs/planning/article-backlog.md` に足す。思いつき・その日の一次体験・ニュースなど外部情報のどれからでも起こせるほか、素材が無い状態からネタ出しを頼むこともできる。切り口出しは `idea-generator`、ネタ帳に積んでよいかの審査（既存48本との重複、カテゴリ・型・段階タグの確定、価値の3軸、公開順への影響）は `idea-reviewer` サブエージェントが担当する。
+記事にする前のネタは `/add-idea` スキル（`.claude/skills/add-idea/SKILL.md`）で `docs/planning/article-backlog.md` に足す。思いつき・その日の一次体験・ニュースなど外部情報のどれからでも起こせるほか、素材が無い状態からネタ出しを頼むこともできる。切り口出しは `idea-generator`、ネタ帳に積んでよいかの審査（既存ネタとの重複、カテゴリ・型・段階タグの確定、価値の3軸、公開順への影響）は `idea-reviewer` サブエージェントが担当する。
 
 記事に付けるインフォグラフィック風のヘッダー画像は `/add-infographic` スキル（`.claude/skills/add-infographic/SKILL.md`）で作る。記事本文から載せる要素を拾い、`infographics/template.html` を差し替えてPNGに焼き、front matter の `image:` まで追記する。詳細は後述の「Infographics」。
 
@@ -87,7 +87,7 @@ image:
 - `tags` are cross-cutting keywords (tool name, job role/scene, etc.), multiple allowed. Also add the reader-level tag (`入口` / `ステップアップ` / `現場実践`), which is **determined by the category** — take the default from the category table in `docs/planning/content-strategy.md` section 3 rather than deciding per article. Only `プロンプト設計` and `業務効率化` need a judgment call.
 - Every post must carry more than knowledge. Include at least one of: first-hand experience (what actually happened when it was tried, failures included), the shared-constraint perspective (a client-site engineer writing for client-site engineers), or curation (what to learn first, what to ignore). Before finishing, ask "would ChatGPT give an equal or better answer to this same question?" — if yes, one of those three is missing. `開発者向け` posts drift into pure explanation most easily; see `docs/planning/content-strategy.md` sections 1 and 3.
 - Body is standard Markdown after the front matter. Internal links can use relative paths — `baseurl` is already handled by `_config.yml`.
-- **`{{ site.baseurl }}` goes on links to other posts only, never on images.** Chirpy prepends `baseurl` to any image path that starts with `/`, so `![alt]({{ site.baseurl }}/assets/img/...)` renders as `/blog-ap-sys/blog-ap-sys/assets/...` and 404s (this shipped once, in `2026-09-21-summarize-reader-level-purpose`). Write body images as `![alt](/assets/img/posts/<slug>-<n>.png)`, the same form as the header image's `path:`. `scripts/check-images.sh` catches this in CI.
+- **`{{ site.baseurl }}` goes on links to other posts only, never on images.** Chirpy prepends `baseurl` to any image path that starts with `/`, so `![alt]({{ site.baseurl }}/assets/img/...)` renders as `/blog-ap-sys/blog-ap-sys/assets/...` and 404s. Write body images as `![alt](/assets/img/posts/<slug>-<n>.png)`, the same form as the header image's `path:`. `scripts/check-images.sh` catches this in CI.
 - Article shape depends on the category. `docs/planning/content-strategy.md` section 5 maps each category to one of four templates (standard how-to, きほん for concept pieces, comparison, news) and lists the rules for each. Pick the template from that table before drafting — don't default to the how-to shape. Every type leads with the conclusion and states in the first sentence or two whose problem the post solves.
 
 ## Infographics

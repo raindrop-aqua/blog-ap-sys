@@ -11,7 +11,7 @@ tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 ## 手順
 
 1. `docs/planning/content-strategy.md` の1章（価値の置き方）・2章（ペルソナ）・3章（カテゴリ表）・5章（型）を読む
-2. `docs/planning/article-backlog.md` を**全体**読む。既存48本と重ならない角度を探すため、ここは飛ばさない
+2. `docs/planning/article-backlog.md` を**全体**読む。既存ネタと重ならない角度を探すため、ここは飛ばさない
 3. `ls site/_posts/` で公開済み記事を確認する（公開済みの内容に依存する切り口が立てられる）
 4. 外部URLが渡された場合は `WebFetch` で一次情報に当たる。二次情報の要約から書かない
 5. 切り口を3〜5案立てる
