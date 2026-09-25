@@ -4,6 +4,7 @@ title: "「小学生向けに」と頼むと数字が消える。指示に一言
 date: 2026-09-28
 categories: [Tips・小技]
 tags: [Claude, 要約, プロンプト, ステップアップ]
+backlog_id: "TP-01"
 image:
   path: /assets/img/posts/2026-09-28-keep-numbers-when-simplifying.png
   alt: 一言を足すと、手描きの絵の増38%・減29%が数字で出た回は、6回中0回から5回になった。

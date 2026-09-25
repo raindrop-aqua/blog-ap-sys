@@ -4,6 +4,7 @@ title: "AIでシステムは作れるのか ― ブログの運営を仕組み�
 date: 2026-11-09
 categories: [開発者向け]
 tags: [現場実践, Claude Code, Skills, Agents, GitHub Pages, ブログ運営]
+backlog_id: "DV10-05"
 image:
   path: /assets/img/posts/2026-11-09-ai-build-system-blog-operation.png
   alt: 校閲は9回以上の予想が実績6回、ネタ出しは0回の予想が実績2回。記事スキルと校閲エージェントができるまでは48時間だった。
