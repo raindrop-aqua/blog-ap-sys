@@ -69,6 +69,16 @@ Claude が作るコミットは、メッセージの末尾に `Co-Authored-By:` 
 
 サブエージェントを足すときは、同じ形（カタカナ2〜3音・役割から取った由来・絵文字1つ・性別を感じさせない名前）で名前を付け、この表に行を足す。
 
+スキルにも同じ形の名前がある（2026-09-27に命名）。`name:`（ID）はスラッシュコマンドとして打つので変えず、名前は `SKILL.md` の `description` の頭と本文の書き出しにだけ持たせる。スキルには `color:` が無い。
+
+| ID | 名前 | 役割 |
+|---|---|---|
+| `add-idea` | 🌱 タネ | 「ネタ」を逆さに読んで「タネ」。思いつきを種として蔵に納める |
+| `write-post` | ✒️ ツヅル | 書き手の言葉を1本に綴る。代筆ではなく綴じ役 |
+| `add-infographic` | 🎨 エガク | 記事の入口に置く1枚を描く |
+
+スキルを足すときも同じ形で名前を付け、この表に行を足す。
+
 記事に付けるインフォグラフィック風のヘッダー画像は `/add-infographic` スキル（`.claude/skills/add-infographic/SKILL.md`）で作る。記事本文から載せる要素を拾い、`infographics/template.html` を差し替えてPNGに焼き、front matter の `image:` まで追記する。詳細は後述の「Infographics」。
 
 書きかけは `site/_drafts/` に置く。GitHub Actions のビルド（`jekyll build`）は `_drafts` を含めないのでデプロイされても公開されず、ローカルの `./preview.sh` は `--drafts` 付きで起動するため見た目だけ確認できる。
