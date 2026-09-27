@@ -255,7 +255,7 @@ footer strong { color: var(--ink); font-family: var(--font-display); }
 <header class="hero">
   <p class="site">「明日使える生成AI」ブログのひみつ</p>
   <h1>文章を書いて送ると、<br><em>自動でWebサイト</em>になる。</h1>
-  <p class="lead">このブログには、ふつうのブログサービスにある「投稿ボタン」がありません。かわりに、ファイルを1つ置いて送るだけで、ロボットがサイトを作り直して公開してくれます。そのしくみを、図でたどってみましょう。</p>
+  <p class="lead">このブログには、ふつうのブログサービスにある「投稿ボタン」がありません。かわりに、ファイルを1つ置いて送っておくと、毎日決まった時間にロボットがサイトを作り直して公開してくれます。そのしくみを、図でたどってみましょう。</p>
   <div class="tldr" aria-label="全体の流れ">
     <span class="pill">書く</span><span class="sep">→</span>
     <span class="pill">送る</span><span class="sep">→</span>
@@ -287,7 +287,7 @@ footer strong { color: var(--ink); font-family: var(--font-display); }
       </div>
       <div class="cap" data-cap="3">
         <h3>組み立てる</h3>
-        <p>倉庫に荷物が届くと、<b>GitHub Actions</b> というロボットが目を覚まします。ロボットは <b>Jekyll（ジキル）</b> という機械を動かして、サイト全体を組み立て直します。人は何もしません。</p>
+        <p>毎日夜中の0時5分になると、<b>GitHub Actions</b> というロボットが目を覚まします。ロボットは <b>Jekyll（ジキル）</b> という機械を動かして、サイト全体を組み立て直します。人は何もしません。急いで出したいときだけ、人がボタンを押してロボットを起こします。</p>
       </div>
       <div class="cap" data-cap="4">
         <h3>公開</h3>
@@ -306,7 +306,7 @@ footer strong { color: var(--ink); font-family: var(--font-display); }
         <div class="ico"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 13l14-7 14 7v14l-14 7-14-7z"/><path d="M6 13l14 7 14-7M20 20v14"/></svg></div>
         <div><h3>GitHub</h3><p>ファイルと変更の歴史を預かる倉庫</p></div>
       </div>
-      <div class="link" data-on="3"><b>自動で起動</b>荷物が届いたら動き出す</div>
+      <div class="link" data-on="3"><b>自動で起動</b>毎日0時5分に動き出す</div>
       <div class="node" data-on="3">
         <div class="ico"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="6"/><path d="M20 5v5M20 30v5M5 20h5M30 20h5M9.4 9.4l3.5 3.5M27.1 27.1l3.5 3.5M9.4 30.6l3.5-3.5M27.1 12.9l3.5-3.5"/></svg></div>
         <div><h3>GitHub Actions</h3><p>Jekyll を動かして、サイトを組み立てるロボット</p></div>
@@ -425,7 +425,7 @@ footer strong { color: var(--ink); font-family: var(--font-display); }
 
 <section id="preview">
   <h2>公開する前に、こっそり確認する</h2>
-  <p class="intro">push した瞬間に世界に出るので、その前に自分のパソコンの中でサイトを動かして見た目を確認します。</p>
+  <p class="intro">送ったものは、その夜には世界に出ます。その前に自分のパソコンの中でサイトを動かして見た目を確認します。</p>
 
   <div class="mini">
     <div class="box">
@@ -496,7 +496,7 @@ footer strong { color: var(--ink); font-family: var(--font-display); }
     <div class="part">
       <h3>更新日を自動で書く係</h3>
       <div class="role">git の履歴</div>
-      <p>記事を直して push すると、「更新日」が自動で変わります。GitHub に残っている変更の歴史を読んで決めています。</p>
+      <p>記事を直して送ると、次に公開されたときに「更新日」が自動で変わります。GitHub に残っている変更の歴史を読んで決めています。</p>
     </div>
     <div class="part">
       <h3>記事の顔になる画像</h3>
@@ -542,8 +542,8 @@ footer strong { color: var(--ink); font-family: var(--font-display); }
     <details><summary>Jekyll<span>ジキル</span></summary><p>Markdown の記事とデザインから、HTML のページをまとめて作るソフト。GitHub Pages が対応しています。</p></details>
     <details><summary>ビルド</summary><p>材料から完成品を「組み立てる」こと。このブログでは、Jekyll がサイト全体を作り直す作業のことです。</p></details>
     <details><summary>GitHub<span>ギットハブ</span></summary><p>ファイルと、その変更の歴史を預けておくネット上の倉庫。だれが・いつ・何を変えたかが残ります。</p></details>
-    <details><summary>push<span>プッシュ</span></summary><p>自分のパソコンにある変更を、GitHub に送ること。このブログでは、これが「公開開始」の合図になります。</p></details>
-    <details><summary>GitHub Actions<span>アクションズ</span></summary><p>GitHub に何かが届いたら、決めておいた作業を自動でやってくれる仕組み。ここでは Jekyll のビルドを動かします。</p></details>
+    <details><summary>push<span>プッシュ</span></summary><p>自分のパソコンにある変更を、GitHub に送ること。このブログでは、送ったものがその夜0時5分の組み立てで公開されます。</p></details>
+    <details><summary>GitHub Actions<span>アクションズ</span></summary><p>決めておいた時間になったら（または人がボタンを押したら）、決めておいた作業を自動でやってくれる仕組み。ここでは毎日0時5分に Jekyll のビルドを動かします。</p></details>
     <details><summary>GitHub Pages<span>ページズ</span></summary><p>GitHub がやっている、無料のサイト公開サービス。できあがったサイトを URL で見られるようにします。</p></details>
     <details><summary>コンテナ</summary><p>パソコンの中に作る、小さな仮想の作業部屋。環境を汚さずに、お試し用の Jekyll を動かせます。</p></details>
   </div>
