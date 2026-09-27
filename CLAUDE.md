@@ -28,7 +28,7 @@ container stop blog-preview
 
 Once running, the site is at `http://localhost:4000/blog-ap-sys/` — the `/blog-ap-sys` path suffix is required because `baseurl` is set in `_config.yml`.
 
-There is no separate lint/test/build command — Jekyll build errors surface in the `container` logs when `preview.sh` is running, and the real build happens via GitHub Actions on push (see below).
+There is no separate lint/test/build command — Jekyll build errors surface in the `container` logs when `preview.sh` is running, and the real build happens via GitHub Actions — daily or on manual run, not on push (see below).
 
 The one exception is `scripts/check-images.sh`, which walks every `<img>` in a built site and fails if the referenced file doesn't exist (doubled or missing `baseurl`, typos in the filename, a forgotten PNG). GitHub Actions runs it in two places: right after `jekyll build` in `pages.yml`, so a broken image stops the deploy, and on every PR into `main` via `.github/workflows/pr-check.yml`, so it is reported before merging. The PR check builds with `--future`, so a post dated in the future is inspected when written rather than on the day it goes live; the deploy build does not, and never deploys from a PR. To run it before pushing, while `preview.sh` is up (Ruby lives in the container, not on the host):
 
@@ -42,10 +42,10 @@ container exec blog-preview sh -c 'JEKYLL_ENV=production bundle exec jekyll buil
 
 ## Publishing flow
 
-1. Add a post file under `site/_posts/` (see naming/front matter rules below) and commit/push to GitHub.
-2. GitHub Actions builds the site with Jekyll automatically.
-3. Check the Actions tab for build completion.
-4. Verify at the public URL.
+1. Add a post file under `site/_posts/` (see naming/front matter rules below) and merge it into `main` through a PR. The PR check builds it and checks images.
+2. GitHub Actions (`.github/workflows/pages.yml`) builds and deploys the site every day at 00:05 JST. **A push to `main` does not deploy** — most posts are committed ahead of their publish date, so push-time deploys rarely changed the live site.
+3. To publish sooner, run the workflow by hand (Actions tab → "Deploy Jekyll site to Pages" → Run workflow, or `gh workflow run pages.yml`). Do this after fixing an already-published post you want live now, and **always right after merging a change to the build itself** (`_config.yml`, `Gemfile`, workflows, `site/_plugins/`, layouts) so a failure shows up while you're watching rather than at midnight.
+4. Check the Actions tab for build completion, then verify at the public URL.
 
 Important: a post whose filename date is in the future will not be published — the `date` front matter must match the filename date.
 
@@ -71,7 +71,7 @@ Claude が作るコミットは、メッセージの末尾に `Co-Authored-By:` 
 
 記事に付けるインフォグラフィック風のヘッダー画像は `/add-infographic` スキル（`.claude/skills/add-infographic/SKILL.md`）で作る。記事本文から載せる要素を拾い、`infographics/template.html` を差し替えてPNGに焼き、front matter の `image:` まで追記する。詳細は後述の「Infographics」。
 
-書きかけは `site/_drafts/` に置く。GitHub Actions のビルド（`jekyll build`）は `_drafts` を含めないので push しても公開されず、ローカルの `./preview.sh` は `--drafts` 付きで起動するため見た目だけ確認できる。
+書きかけは `site/_drafts/` に置く。GitHub Actions のビルド（`jekyll build`）は `_drafts` を含めないのでデプロイされても公開されず、ローカルの `./preview.sh` は `--drafts` 付きで起動するため見た目だけ確認できる。
 
 以下は保存する記事そのものの仕様。
 

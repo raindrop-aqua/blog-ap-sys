@@ -1,8 +1,10 @@
 name: Deploy Jekyll site to Pages
 
+# main への push では動かさない。記事の多くは公開日を先に決めて入れるため、push 時の
+# デプロイではサイトがほとんど変わらない。反映は毎日のスケジュールで行い、急ぐとき
+# （公開済み記事の直し、ビルド設定の変更直後）は Actions 画面か
+# `gh workflow run pages.yml` で手動実行する。ビルドが通るかは PR ごとに pr-check.yml が確かめる
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
   schedule:
     # 毎日 00:05 JST (15:05 UTC) — 日付が来た未来日投稿を自動的に公開する
