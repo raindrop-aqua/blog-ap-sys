@@ -111,7 +111,9 @@ sed -n '1,60p' docs/planning/article-backlog.md && ls site/_posts/
 
 ### Diary が起点のとき
 
-書き手は別リポジトリ Diary（`/Users/mss/Documents/Diary`）に、日記・読書メモ・Web記事の要約をつけている。ここには生成AIでワークフローを作った体験がよく出てくるので、「体験の記録」「外部情報」の起点をまとめて持っている場所として使う。
+書き手は別リポジトリ Diary に、日記・読書メモ・Web記事の要約をつけている。ここには生成AIでワークフローを作った体験がよく出てくるので、「体験の記録」「外部情報」の起点をまとめて持っている場所として使う。
+
+**Diary の場所と非公開フォルダの名前は、このリポジトリに書かない**（リポジトリは公開されている）。どちらも git 管理外の `.claude/settings.local.json` にだけある。場所は `permissions.additionalDirectories`、読まないフォルダは `permissions.deny` の `Read(...)` ルール。セッションの「追加の作業ディレクトリ」にも出ている。見つからなければ、書き手に `settings.local.json` の用意を頼んで止まる。
 
 **Diary は読むだけ。** 書き込まない（pull型。Diary は記録する場所のままにしておく）。読むときは Read / Grep / Glob を使い、Bash で `cat` や `grep` をしない。`.claude/settings.local.json` の deny ルールは Bash には効かないため。先に下の「公開範囲のルール」を確認してから読む。
 
@@ -122,7 +124,7 @@ Diary の中身（2026-09-27時点。形が変わっていたら Diary の `CLAU
 | `diary/yyyy/mm/yyyy-mm-dd.md` | 日記。frontmatter なし、1行目が `yyyy年mm月dd日(曜日)　タイトル` | 本文だけ。「読んだもの」以降（天気・価格）は読まない。2015〜2020年は古い形式なので対象外 |
 | `clips/yyyy/mm/yyyy-mm-dd_slug.md` | Web記事の要約。frontmatter に `url`・`site`・`published`・`read`・`sparks` | `## ネタの種`・`## 自分の考え` |
 | `reading/books/yyyy-mm_書名.md` | 読書メモ。1冊1ファイル | `## ネタの種`（`- yyyy-mm-dd [blog] ...` の日付付き）・`## 自分の考え` |
-| `secret_docs/` | 私的な記録 | **読まない** |
+| `deny` に書かれたフォルダ | 私的な記録 | **読まない** |
 
 手順:
 
@@ -141,7 +143,8 @@ Diary の中身（2026-09-27時点。形が変わっていたら Diary の `CLAU
 
 ブログとネタ帳は公開され、Diary は私的な記録。Diary から持ち出すものには必ず次を適用する。
 
-- `secret_docs/` は読まない（`.claude/settings.local.json` の deny でも防いでいる）
+- `.claude/settings.local.json` の `deny` に書かれた非公開フォルダは読まない（deny で仕組みとしても防いでいる）
+- Diary の絶対パスと非公開フォルダの名前を、ネタ帳・記事・コミットメッセージ・PR に書かない。出典は Diary 内の相対パスだけにする
 - 日記の文章をネタ帳や記事にそのまま引用しない。体験を素材として書き直す
 - 人名、常駐先・案件を特定しうる情報は、**ネタ帳に書き込む段階で**落とす。`writing-style.md` 4章「一次体験を、常駐先の具体を出さずに語る」の置き換えの型を、日記由来のネタにも同じように当てる
 - 日記に書かれた体調・家族・私生活の話はネタにしない。候補の1行にも出さない
