@@ -57,7 +57,7 @@ Claude が作るコミットは、メッセージの末尾に `Co-Authored-By:` 
 
 記事を1本書くときは、まず `/write-post` スキル（`.claude/skills/write-post/SKILL.md`）を使う。ネタ選び → 一次体験のヒアリング → 構成 → 下書き → 校閲 → 保存 → 周辺ドキュメント更新までを対話で通す手順書で、`docs/planning/` の3本をフェーズごとに読み直す作りになっている。書き上がった下書きの校閲は `post-reviewer` サブエージェント（`.claude/agents/post-reviewer.md`）が担当する。
 
-記事にする前のネタは `/add-idea` スキル（`.claude/skills/add-idea/SKILL.md`）で `docs/planning/article-backlog.md` に足す。思いつき・その日の一次体験・ニュースなど外部情報のどれからでも起こせるほか、素材が無い状態からネタ出しを頼むこともできる。切り口出しは `idea-generator`、ネタ帳に積んでよいかの審査（既存ネタとの重複、カテゴリ・型・段階タグの確定、価値の3軸、公開順への影響）は `idea-reviewer` サブエージェントが担当する。
+記事にする前のネタは `/add-idea` スキル（`.claude/skills/add-idea/SKILL.md`）で `docs/planning/article-backlog.md` に足す。思いつき・その日の一次体験・ニュースなど外部情報のどれからでも起こせるほか、素材が無い状態からネタ出しを頼むこともできる。書き手の別リポジトリ Diary（`/Users/mss/Documents/Diary`。日記・読書メモ・Web記事の要約）も起点素材になる。ブログ側から読みに行くだけで書き込まず、`.claude/settings.local.json`（git 管理外）で Diary を読めるようにしつつ `secret_docs/` の読み取りと Diary への書き込みを deny している。持ち出すときの公開範囲のルールはスキルに書いてある。切り口出しは `idea-generator`、ネタ帳に積んでよいかの審査（既存ネタとの重複、カテゴリ・型・段階タグの確定、価値の3軸、公開順への影響）は `idea-reviewer` サブエージェントが担当する。
 
 サブエージェントには書き手との会話で使う名前と絵文字がある。スキルは書き手にIDではなく名前で伝え、返ってきた結果には名前付きの見出しを付ける。`name:`（ID）はスキルの `subagent_type` から参照しているので変えず、名前は各定義ファイルの `description` の頭と本文の書き出し、frontmatter の `color:` にだけ持たせる。
 
