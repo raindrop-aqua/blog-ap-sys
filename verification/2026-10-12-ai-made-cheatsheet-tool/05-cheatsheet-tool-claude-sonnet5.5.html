@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostgreSQL 保守用チートシート(psql)</title>
+<style>
+  :root { --bg:#fff; --fg:#1f2328; --muted:#59636e; --line:#d1d9e0; --code:#f6f8fa; --accent:#0969da; --inbg:#fff8c5; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9198a1; --line:#3d444d; --code:#161b22; --accent:#4493f8; --inbg:#3a3000; }
+  }
+  body { background:var(--bg); color:var(--fg); font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif; line-height:1.7; max-width:860px; margin:0 auto; padding:24px 16px 64px; }
+  h1 { font-size:1.6rem; border-bottom:1px solid var(--line); padding-bottom:.4em; }
+  h2 { font-size:1.25rem; margin-top:2em; border-bottom:1px solid var(--line); padding-bottom:.3em; }
+  h3 { font-size:1.05rem; margin-top:1.6em; }
+  pre, code { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+  pre { background:var(--code); border:1px solid var(--line); border-radius:6px; padding:12px 14px; overflow-x:auto; font-size:.9rem; line-height:1.9; position:relative; }
+  :not(pre) > code { background:var(--code); border-radius:4px; padding:.15em .4em; font-size:.9em; }
+  table { border-collapse:collapse; width:100%; margin:1em 0; }
+  th, td { border:1px solid var(--line); padding:6px 10px; text-align:left; }
+  th { background:var(--code); }
+  hr { border:0; border-top:1px solid var(--line); margin:2em 0; }
+  .ed { font-family:inherit; font-size:.85rem; background:var(--inbg); color:var(--fg); border:1px solid var(--accent); border-radius:4px; padding:1px 6px; width:9em; }
+  .ed.sm { width:4.5em; }
+  .copy { position:absolute; top:6px; right:6px; font-size:.75rem; background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:4px; padding:2px 8px; cursor:pointer; }
+  .hint { color:var(--muted); font-size:.85rem; }
+  .code-wrap { padding-right:64px; }
+  ul { padding-left:1.4em; }
+</style>
+</head>
+<body>
+
+<h1>PostgreSQL 保守用チートシート(psql)</h1>
+
+<h2>1. 接続方法</h2>
+<p class="hint">黄色い枠は編集できます。入力すると、このセクション内の同じ項目すべてに反映されます。</p>
+
+<pre id="c-basic"><button class="copy" type="button">コピー</button><span class="code-wrap"># 基本形
+psql -h <input class="ed" data-k="host" placeholder="ホスト名"> -p <input class="ed sm" data-k="port" value="5432" placeholder="ポート"> -U <input class="ed" data-k="user" placeholder="ユーザー名"> -d <input class="ed" data-k="db" placeholder="データベース名"></span></pre>
+
+<pre><span class="code-wrap"># 例
+psql -h db.example.com -p 5432 -U postgres -d mydb</span></pre>
+
+<pre id="c-uri"><button class="copy" type="button">コピー</button><span class="code-wrap"># 接続文字列(URI)で指定
+psql "postgresql://<input class="ed" data-k="user" placeholder="ユーザー名">@<input class="ed" data-k="host" placeholder="ホスト名">:<input class="ed sm" data-k="port" value="5432" placeholder="ポート">/<input class="ed" data-k="db" placeholder="データベース名">"</span></pre>
+
+<h3>パスワードの扱い</h3>
+<ul>
+  <li>接続時にプロンプトで入力する。</li>
+  <li>毎回の入力を避ける場合は <code>~/.pgpass</code> に記述する(権限は <code>chmod 600</code>)。
+    <ul><li>書式: <code>ホスト:ポート:DB:ユーザー:パスワード</code></li></ul>
+  </li>
+  <li>環境変数でも指定できる: <code>PGHOST</code> / <code>PGPORT</code> / <code>PGUSER</code> / <code>PGDATABASE</code> / <code>PGPASSWORD</code></li>
+</ul>
+
+<h3>注意</h3>
+<ul>
+  <li>本番環境では、作業前に接続先(ホスト・DB名)を必ず確認する。</li>
+  <li>接続後は <code>\conninfo</code> で現在の接続先を確認できる。</li>
+</ul>
+
+<hr>
+
+<h2>2. よく使うメタコマンド(<code>\</code> で始まる)</h2>
+<table>
+  <thead><tr><th>コマンド</th><th>内容</th></tr></thead>
+  <tbody>
+    <tr><td><code>\?</code></td><td>メタコマンドの一覧</td></tr>
+    <tr><td><code>\h CREATE TABLE</code></td><td>SQL文のヘルプ</td></tr>
+    <tr><td><code>\l</code></td><td>データベース一覧</td></tr>
+    <tr><td><code>\c DB名</code></td><td>別のDBに接続し直す</td></tr>
+    <tr><td><code>\dt</code></td><td>テーブル一覧</td></tr>
+    <tr><td><code>\d テーブル名</code></td><td>テーブル定義(列・インデックス・制約)</td></tr>
+    <tr><td><code>\d+ テーブル名</code></td><td>上記の詳細版(サイズ等も)</td></tr>
+    <tr><td><code>\di</code></td><td>インデックス一覧</td></tr>
+    <tr><td><code>\dv</code></td><td>ビュー一覧</td></tr>
+    <tr><td><code>\dn</code></td><td>スキーマ一覧</td></tr>
+    <tr><td><code>\du</code></td><td>ロール(ユーザー)一覧</td></tr>
+    <tr><td><code>\dx</code></td><td>拡張機能の一覧</td></tr>
+    <tr><td><code>\conninfo</code></td><td>現在の接続情報</td></tr>
+    <tr><td><code>\x</code></td><td>縦表示の切り替え(列が多い結果が見やすい)</td></tr>
+    <tr><td><code>\timing</code></td><td>クエリの実行時間を表示</td></tr>
+    <tr><td><code>\e</code></td><td>エディタでSQLを編集</td></tr>
+    <tr><td><code>\i ファイル名</code></td><td>SQLファイルを実行</td></tr>
+    <tr><td><code>\o ファイル名</code></td><td>結果をファイルに出力</td></tr>
+    <tr><td><code>\q</code></td><td>終了</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2>3. 保守でよく使うSQL</h2>
+<pre>-- DBのサイズ
+SELECT pg_size_pretty(pg_database_size('mydb'));
+
+-- テーブルごとのサイズ(上位10件)
+SELECT relname, pg_size_pretty(pg_total_relation_size(relid))
+FROM pg_catalog.pg_statio_user_tables
+ORDER BY pg_total_relation_size(relid) DESC LIMIT 10;
+
+-- 接続中のセッションと実行中のクエリ
+SELECT pid, usename, state, query_start, query
+FROM pg_stat_activity;
+
+-- VACUUM / ANALYZE
+VACUUM (VERBOSE, ANALYZE) テーブル名;</pre>
+
+<h3>実行中のクエリを止める</h3>
+<pre>SELECT pg_cancel_backend(pid);     -- クエリのみ中断(穏やか)
+SELECT pg_terminate_backend(pid);  -- 接続ごと強制終了</pre>
+<ul>
+  <li>本番では、対象の <code>pid</code> と影響範囲を確認してから実行する。</li>
+</ul>
+
+<hr>
+
+<h2>4. 便利なコマンドラインオプション</h2>
+<pre>psql -c "SELECT now();"   # 1コマンドだけ実行して終了
+psql -f script.sql        # SQLファイルを実行
+psql -X                   # ~/.psqlrc を読み込まない</pre>
+
+<hr>
+
+<h2>5. 今後深めたいテーマ(メモ欄)</h2>
+<ul style="list-style:none;padding-left:0">
+  <li><label><input type="checkbox"> バックアップ(<code>pg_dump</code> / <code>pg_basebackup</code>)</label></li>
+  <li><label><input type="checkbox"> VACUUM / autovacuum の運用</label></li>
+  <li><label><input type="checkbox"> スロークエリの調査</label></li>
+  <li><label><input type="checkbox"> 監視</label></li>
+  <li><label><input type="checkbox"> レプリケーション</label></li>
+</ul>
+
+<script>
+  // 同じ項目(host/port/user/db)の入力を全ボックスで同期
+  var boxes = document.querySelectorAll('.ed');
+  boxes.forEach(function (b) {
+    b.addEventListener('input', function () {
+      boxes.forEach(function (o) {
+        if (o !== b && o.dataset.k === b.dataset.k) o.value = b.value;
+      });
+    });
+  });
+  // コピーボタン:入力欄の値(空なら項目名)を埋めた文字列をコピー
+  document.querySelectorAll('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var wrap = btn.parentElement.querySelector('.code-wrap');
+      var text = '';
+      wrap.childNodes.forEach(function (n) {
+        if (n.nodeType === 3) text += n.textContent;
+        else if (n.tagName === 'INPUT') text += n.value || n.placeholder;
+      });
+      var done = function () { btn.textContent = 'コピーしました'; setTimeout(function () { btn.textContent = 'コピー'; }, 1500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, function () {});
+    });
+  });
+</script>
+</body>
+</html>

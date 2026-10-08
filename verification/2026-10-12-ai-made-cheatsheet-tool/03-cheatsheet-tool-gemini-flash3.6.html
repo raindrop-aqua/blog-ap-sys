@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PostgreSQL 接続文字列 & psql コマンド生成ツール</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .copy-toast {
+      transition: opacity 0.3s ease;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen py-8 px-4 font-sans">
+  <div class="max-w-4xl mx-auto space-y-6">
+    
+    <!-- Header -->
+    <header class="border-b border-slate-700 pb-4 flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-sky-400">PostgreSQL 接続文字列 & psql 生成ツール</h1>
+        <p class="text-slate-400 text-sm mt-1">パラメーターを入力して、用途に応じた接続文字列やpsqlコマンドを即座に生成します</p>
+      </div>
+      <button id="reset-btn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm rounded border border-slate-600 transition">
+        デフォルトに戻す
+      </button>
+    </header>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Input Form -->
+      <section class="bg-slate-800 p-5 rounded-lg border border-slate-700 space-y-4 shadow-lg">
+        <h2 class="text-lg font-semibold text-slate-200 border-b border-slate-700 pb-2 flex items-center gap-2">
+          ⚙️ 接続パラメーター
+        </h2>
+
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">ホスト名 / IPアドレス (-h)</label>
+            <input type="text" id="host" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-sky-300 focus:outline-none focus:border-sky-500" value="localhost">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">ポート番号 (-p)</label>
+              <input type="text" id="port" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-sky-300 focus:outline-none focus:border-sky-500" value="5432">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">データベース名 (-d)</label>
+              <input type="text" id="dbname" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-sky-300 focus:outline-none focus:border-sky-500" value="postgres">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">ユーザー名 (-U)</label>
+              <input type="text" id="user" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-sky-300 focus:outline-none focus:border-sky-500" value="postgres">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">パスワード</label>
+              <input type="password" id="password" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-sky-300 focus:outline-none focus:border-sky-500" placeholder="(任意)">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">SSLモード (sslmode)</label>
+              <select id="sslmode" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-sky-300 focus:outline-none focus:border-sky-500">
+                <option value="disable">disable (未使用)</option>
+                <option value="prefer" selected>prefer (推奨)</option>
+                <option value="require">require (必須)</option>
+                <option value="verify-ca">verify-ca</option>
+                <option value="verify-full">verify-full</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">スキーマ (search_path)</label>
+              <input type="text" id="schema" class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-sky-300 focus:outline-none focus:border-sky-500" placeholder="public (標準)">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Connection Tips / Preset Options -->
+      <section class="bg-slate-800 p-5 rounded-lg border border-slate-700 space-y-4 shadow-lg flex flex-col justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-200 border-b border-slate-700 pb-2 flex items-center gap-2">
+            💡 プリセット・オプション
+          </h2>
+          <p class="text-xs text-slate-400 mt-2">よく使われる接続環境用のプリセットボタンです。</p>
+          
+          <div class="grid grid-cols-2 gap-2 mt-4">
+            <button onclick="setPreset('local')" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-xs rounded text-slate-200 border border-slate-600 text-left">
+              <strong>🏠 ローカル開発</strong><br>
+              <span class="text-slate-400">localhost:5432</span>
+            </button>
+            <button onclick="setPreset('docker')" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-xs rounded text-slate-200 border border-slate-600 text-left">
+              <strong>🐳 Dockerコンテナ</strong><br>
+              <span class="text-slate-400">127.0.0.1:5432</span>
+            </button>
+            <button onclick="setPreset('rds')" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-xs rounded text-slate-200 border border-slate-600 text-left">
+              <strong>☁️ AWS RDS / Cloud</strong><br>
+              <span class="text-slate-400">sslmode=require</span>
+            </button>
+            <button onclick="setPreset('custom')" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-xs rounded text-slate-200 border border-slate-600 text-left">
+              <strong>🧹 クリア</strong><br>
+              <span class="text-slate-400">入力内容を空にする</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-900/50 rounded border border-slate-700/50 text-xs text-slate-400 space-y-1">
+          <p>🔒 <strong>セキュリティノート:</strong> 入力されたデータはブラウザ内でのみ処理され、サーバー等に送信されることはありません。</p>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Output Section -->
+    <section class="bg-slate-800 p-5 rounded-lg border border-slate-700 space-y-5 shadow-lg">
+      <h2 class="text-lg font-semibold text-slate-200 border-b border-slate-700 pb-2">
+        📋 生成された接続文字列・コマンド
+      </h2>
+
+      <!-- Output Item: CLI psql Command -->
+      <div class="space-y-1">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-semibold text-sky-400">1. psql CLIコマンド (ターミナル用)</span>
+          <button onclick="copyToClipboard('out-psql')" class="px-2.5 py-1 text-xs bg-sky-600 hover:bg-sky-500 text-white rounded transition">コピー</button>
+        </div>
+        <pre id="out-psql" class="bg-slate-950 p-3 rounded font-mono text-sm text-emerald-400 overflow-x-auto border border-slate-800"></pre>
+      </div>
+
+      <!-- Output Item: Connection URI -->
+      <div class="space-y-1">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-semibold text-sky-400">2. Connection URI (アプリケーション接続用)</span>
+          <button onclick="copyToClipboard('out-uri')" class="px-2.5 py-1 text-xs bg-sky-600 hover:bg-sky-500 text-white rounded transition">コピー</button>
+        </div>
+        <pre id="out-uri" class="bg-slate-950 p-3 rounded font-mono text-sm text-emerald-400 overflow-x-auto border border-slate-800"></pre>
+      </div>
+
+      <!-- Output Item: Key-Value / JDBC Connection String -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-1">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-semibold text-sky-400">3. JDBC URL (Java / DBeaver等)</span>
+            <button onclick="copyToClipboard('out-jdbc')" class="px-2.5 py-1 text-xs bg-sky-600 hover:bg-sky-500 text-white rounded transition">コピー</button>
+          </div>
+          <pre id="out-jdbc" class="bg-slate-950 p-3 rounded font-mono text-xs text-emerald-400 overflow-x-auto border border-slate-800"></pre>
+        </div>
+
+        <div class="space-y-1">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-semibold text-sky-400">4. キーバリュー形式 (pgpass / libpq)</span>
+            <button onclick="copyToClipboard('out-kv')" class="px-2.5 py-1 text-xs bg-sky-600 hover:bg-sky-500 text-white rounded transition">コピー</button>
+          </div>
+          <pre id="out-kv" class="bg-slate-950 p-3 rounded font-mono text-xs text-emerald-400 overflow-x-auto border border-slate-800"></pre>
+        </div>
+      </div>
+
+      <!-- Output Item: Environment Variable Export -->
+      <div class="space-y-1">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-semibold text-sky-400">5. 環境変数エクスポート (Bash / Zsh用)</span>
+          <button onclick="copyToClipboard('out-env')" class="px-2.5 py-1 text-xs bg-sky-600 hover:bg-sky-500 text-white rounded transition">コピー</button>
+        </div>
+        <pre id="out-env" class="bg-slate-950 p-3 rounded font-mono text-xs text-slate-300 overflow-x-auto border border-slate-800"></pre>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-emerald-600 text-white px-4 py-2 rounded shadow-lg text-sm opacity-0 pointer-events-none copy-toast">
+    クリップボードにコピーしました！
+  </div>
+
+  <script>
+    const inputs = ['host', 'port', 'dbname', 'user', 'password', 'sslmode', 'schema'];
+
+    function updateStrings() {
+      const host = document.getElementById('host').value.trim() || 'localhost';
+      const port = document.getElementById('port').value.trim() || '5432';
+      const dbname = document.getElementById('dbname').value.trim() || 'postgres';
+      const user = document.getElementById('user').value.trim() || 'postgres';
+      const password = document.getElementById('password').value;
+      const sslmode = document.getElementById('sslmode').value;
+      const schema = document.getElementById('schema').value.trim();
+
+      // 1. psql CLI
+      let psqlCmd = '';
+      if (password) {
+        psqlCmd += `PGPASSWORD='${password}' `;
+      }
+      psqlCmd += `psql -h ${host} -p ${port} -U ${user} -d ${dbname}`;
+      if (sslmode !== 'disable') {
+        psqlCmd += ` "?sslmode=${sslmode}"`;
+      }
+
+      // 2. URI
+      const auth = password ? `${encodeURIComponent(user)}:${encodeURIComponent(password)}` : encodeURIComponent(user);
+      let uri = `postgresql://${auth}@${host}:${port}/${dbname}?sslmode=${sslmode}`;
+      if (schema) {
+        uri += `&options=-c%20search_path%3D${encodeURIComponent(schema)}`;
+      }
+
+      // 3. JDBC
+      let jdbc = `jdbc:postgresql://${host}:${port}/${dbname}?sslmode=${sslmode}`;
+      if (schema) {
+        jdbc += `&currentSchema=${schema}`;
+      }
+
+      // 4. Key-Value
+      let kv = `host=${host} port=${port} dbname=${dbname} user=${user}`;
+      if (password) kv += ` password=${password}`;
+      kv += ` sslmode=${sslmode}`;
+
+      // 5. Env variables
+      let env = `export PGHOST="${host}"\nexport PGPORT="${port}"\nexport PGDATABASE="${dbname}"\nexport PGUSER="${user}"`;
+      if (password) env += `\nexport PGPASSWORD="${password}"`;
+
+      document.getElementById('out-psql').textContent = psqlCmd;
+      document.getElementById('out-uri').textContent = uri;
+      document.getElementById('out-jdbc').textContent = jdbc;
+      document.getElementById('out-kv').textContent = kv;
+      document.getElementById('out-env').textContent = env;
+    }
+
+    function setPreset(type) {
+      if (type === 'local') {
+        document.getElementById('host').value = 'localhost';
+        document.getElementById('port').value = '5432';
+        document.getElementById('dbname').value = 'postgres';
+        document.getElementById('user').value = 'postgres';
+        document.getElementById('password').value = '';
+        document.getElementById('sslmode').value = 'disable';
+      } else if (type === 'docker') {
+        document.getElementById('host').value = '127.0.0.1';
+        document.getElementById('port').value = '5432';
+        document.getElementById('dbname').value = 'app_db';
+        document.getElementById('user').value = 'db_user';
+        document.getElementById('password').value = 'secret';
+        document.getElementById('sslmode').value = 'disable';
+      } else if (type === 'rds') {
+        document.getElementById('host').value = 'mydb.c1234567890.ap-northeast-1.rds.amazonaws.com';
+        document.getElementById('port').value = '5432';
+        document.getElementById('dbname').value = 'production';
+        document.getElementById('user').value = 'dbadmin';
+        document.getElementById('sslmode').value = 'require';
+      } else if (type === 'custom') {
+        inputs.forEach(id => {
+          if (id === 'sslmode') {
+            document.getElementById(id).value = 'disable';
+          } else {
+            document.getElementById(id).value = '';
+          }
+        });
+      }
+      updateStrings();
+    }
+
+    function copyToClipboard(elementId) {
+      const text = document.getElementById(elementId).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast();
+      });
+    }
+
+    function showToast() {
+      const toast = document.getElementById('toast');
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 2000);
+    }
+
+    inputs.forEach(id => {
+      document.getElementById(id).addEventListener('input', updateStrings);
+      document.getElementById(id).addEventListener('change', updateStrings);
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => setPreset('local'));
+
+    // Initialize
+    updateStrings();
+  </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PostgreSQL接続文字列生成ツール</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+label {
+    display: inline-block;
+    width: 100px;
+    font-weight: bold;
+}
+
+input {
+    width: 300px;
+    padding: 6px;
+}
+
+button {
+    padding: 8px 16px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+textarea {
+    width: 100%;
+    height: 120px;
+    margin-top: 20px;
+    font-family: Consolas, monospace;
+}
+</style>
+</head>
+<body>
+
+<h1>PostgreSQL接続文字列生成ツール</h1>
+
+<div class="form-group">
+    <label>Host</label>
+    <input type="text" id="host" value="192.168.1.100">
+</div>
+
+<div class="form-group">
+    <label>Port</label>
+    <input type="text" id="port" value="5432">
+</div>
+
+<div class="form-group">
+    <label>DB名</label>
+    <input type="text" id="dbname" value="mydb">
+</div>
+
+<div class="form-group">
+    <label>User</label>
+    <input type="text" id="user" value="postgres">
+</div>
+
+<div class="form-group">
+    <label>Password</label>
+    <input type="text" id="password" placeholder="任意">
+</div>
+
+<button onclick="generateConnectionString()">
+    接続文字列生成
+</button>
+
+<button onclick="copyResult()">
+    コピー
+</button>
+
+<h2>psqlコマンド</h2>
+<textarea id="result" readonly></textarea>
+
+<script>
+function generateConnectionString() {
+    const host = document.getElementById("host").value;
+    const port = document.getElementById("port").value;
+    const dbname = document.getElementById("dbname").value;
+    const user = document.getElementById("user").value;
+    const password = document.getElementById("password").value;
+
+    let connStr =
+        `psql "host=${host} port=${port} dbname=${dbname} user=${user}"`;
+
+    if (password) {
+        connStr =
+`export PGPASSWORD='${password}'
+${connStr}`;
+    }
+
+    document.getElementById("result").value = connStr;
+}
+
+function copyResult() {
+    const result = document.getElementById("result");
+    result.select();
+    document.execCommand("copy");
+    alert("コピーしました");
+}
+
+generateConnectionString();
+</script>
+
+</body>
+</html>

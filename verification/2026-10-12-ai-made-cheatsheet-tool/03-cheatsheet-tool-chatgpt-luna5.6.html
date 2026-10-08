@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PostgreSQL 接続文字列ジェネレーター</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f7fa;
+    --panel: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #d1d5db;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --danger: #dc2626;
+    --code: #111827;
+    --code-text: #f9fafb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111827;
+      --panel: #1f2937;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --border: #4b5563;
+      --accent: #60a5fa;
+      --accent-hover: #93c5fd;
+      --danger: #f87171;
+      --code: #030712;
+      --code-text: #f9fafb;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP",
+                 "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  h1 {
+    margin: 0 0 8px;
+    font-size: 1.7rem;
+  }
+  .description {
+    margin: 0 0 24px;
+    color: var(--muted);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  }
+  .panel.full { grid-column: 1 / -1; }
+  .panel h2 {
+    margin: 0 0 16px;
+    font-size: 1.05rem;
+  }
+  .field {
+    margin-bottom: 14px;
+  }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .hint {
+    color: var(--muted);
+    font-size: .85rem;
+    font-weight: normal;
+  }
+  input, select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+  }
+  input:focus, select:focus {
+    outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    border-color: var(--accent);
+  }
+  .password-row {
+    display: flex;
+    gap: 8px;
+  }
+  .password-row input { flex: 1; }
+  button {
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 13px;
+    background: var(--accent);
+    color: white;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover { background: var(--accent-hover); }
+  button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  button.secondary:hover { background: rgba(127,127,127,.12); }
+  button.danger {
+    background: var(--danger);
+  }
+  .output {
+    position: relative;
+  }
+  pre {
+    margin: 0;
+    padding: 16px;
+    border-radius: 8px;
+    background: var(--code);
+    color: var(--code-text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    min-height: 52px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+                 "Liberation Mono", monospace;
+    font-size: .9rem;
+  }
+  .output-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .warning {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-left: 4px solid #f59e0b;
+    background: rgba(245,158,11,.12);
+    border-radius: 6px;
+    font-size: .9rem;
+  }
+  .status {
+    min-height: 1.5em;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: .9rem;
+  }
+  .checks {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .checks label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: normal;
+    margin: 0;
+  }
+  .checks input { width: auto; }
+  footer {
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: .82rem;
+  }
+  @media (max-width: 720px) {
+    body { padding: 14px; }
+    .grid { grid-template-columns: 1fr; }
+    .panel.full { grid-column: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>PostgreSQL 接続文字列ジェネレーター</h1>
+  <p class="description">
+    PostgreSQL の接続情報を入力すると、<code>psql</code> コマンドと接続URIを自動生成します。
+  </p>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>接続情報</h2>
+
+      <div class="field">
+        <label for="host">Host</label>
+        <input id="host" type="text" value="localhost" placeholder="localhost">
+      </div>
+
+      <div class="field">
+        <label for="port">Port</label>
+        <input id="port" type="text" inputmode="numeric" value="5432" placeholder="5432">
+      </div>
+
+      <div class="field">
+        <label for="user">User</label>
+        <input id="user" type="text" value="postgres" placeholder="postgres">
+      </div>
+
+      <div class="field">
+        <label for="database">Database</label>
+        <input id="database" type="text" value="mydb" placeholder="mydb">
+      </div>
+
+      <div class="field">
+        <label for="password">Password <span class="hint">（任意）</span></label>
+        <div class="password-row">
+          <input id="password" type="password" placeholder="パスワード">
+          <button type="button" class="secondary" id="togglePassword">表示</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="sslmode">SSL Mode</label>
+        <select id="sslmode">
+          <option value="">指定しない</option>
+          <option value="disable">disable</option>
+          <option value="allow">allow</option>
+          <option value="prefer" selected>prefer</option>
+          <option value="require">require</option>
+          <option value="verify-ca">verify-ca</option>
+          <option value="verify-full">verify-full</option>
+        </select>
+      </div>
+
+      <div class="checks">
+        <label>
+          <input id="includePassword" type="checkbox">
+          出力にパスワードを含める
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>生成される接続情報</h2>
+
+      <div class="field">
+        <label>psql コマンド</label>
+        <div class="output">
+          <pre id="psqlOutput"></pre>
+          <div class="output-actions">
+            <button type="button" data-copy="psqlOutput">コピー</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>PostgreSQL 接続URI</label>
+        <div class="output">
+          <pre id="uriOutput"></pre>
+          <div class="output-actions">
+            <button type="button" data-copy="uriOutput">コピー</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="warning">
+        <strong>注意：</strong>
+        パスワードを含む接続文字列をコピーした場合、クリップボードやシェル履歴などに
+        パスワードが残る可能性があります。本番環境では特に注意してください。
+      </div>
+
+      <div id="status" class="status"></div>
+    </section>
+
+    <section class="panel full">
+      <h2>操作</h2>
+      <div class="output-actions">
+        <button type="button" id="clearButton" class="secondary">入力をクリア</button>
+        <button type="button" id="sampleButton" class="secondary">サンプル値に戻す</button>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    このHTMLは外部通信を行いません。入力内容をサーバーへ送信したり、ブラウザのローカルストレージへ保存したりしません。
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const ids = ["host", "port", "user", "database", "password", "sslmode", "includePassword"];
+  const defaults = {
+    host: "localhost",
+    port: "5432",
+    user: "postgres",
+    database: "mydb",
+    password: "",
+    sslmode: "prefer",
+    includePassword: false
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function shellQuote(value) {
+    if (value === "") return "''";
+    return "'" + String(value).replace(/'/g, "'\\''") + "'";
+  }
+
+  function uriEncode(value) {
+    return encodeURIComponent(value);
+  }
+
+  function generate() {
+    const host = $("host").value.trim();
+    const port = $("port").value.trim();
+    const user = $("user").value;
+    const database = $("database").value;
+    const password = $("password").value;
+    const sslmode = $("sslmode").value;
+    const includePassword = $("includePassword").checked;
+
+    const parts = ["psql"];
+
+    if (host) parts.push("-h", shellQuote(host));
+    if (port) parts.push("-p", shellQuote(port));
+    if (user) parts.push("-U", shellQuote(user));
+    if (database) parts.push("-d", shellQuote(database));
+
+    // psqlコマンドにパスワードを直接埋め込むと、
+    // シェル履歴等に残る可能性があるため、警告付きでのみ生成。
+    if (includePassword && password) {
+      parts.push("--password=" + shellQuote(password));
+    }
+
+    $("psqlOutput").textContent = parts.join(" ");
+
+    let auth = uriEncode(user);
+    if (includePassword && password) {
+      auth += ":" + uriEncode(password);
+    }
+
+    let uri = "postgresql://";
+    if (auth) uri += auth + "@";
+    uri += host || "localhost";
+    if (port) uri += ":" + uriEncode(port);
+    uri += "/" + uriEncode(database || "");
+
+    if (sslmode) {
+      uri += "?sslmode=" + uriEncode(sslmode);
+    }
+
+    $("uriOutput").textContent = uri;
+
+    if (includePassword && password) {
+      $("status").textContent =
+        "パスワードを含めて生成しています。コピー・シェル履歴・画面共有などに注意してください。";
+    } else {
+      $("status").textContent =
+        "パスワードは出力していません。psql実行時にパスワード入力を求められる場合があります。";
+    }
+  }
+
+  function copyOutput(id) {
+    const text = $(id).textContent;
+    const hasPassword = $("includePassword").checked && $("password").value;
+
+    if (hasPassword) {
+      const ok = window.confirm(
+        "この出力にはパスワードが含まれています。\n" +
+        "クリップボードへコピーしてもよいですか？"
+      );
+      if (!ok) return;
+    }
+
+    navigator.clipboard.writeText(text).then(function () {
+      $("status").textContent = "コピーしました。";
+    }).catch(function () {
+      // clipboard APIが使えない環境向けフォールバック
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.focus();
+      area.select();
+
+      try {
+        document.execCommand("copy");
+        $("status").textContent = "コピーしました。";
+      } catch (e) {
+        $("status").textContent =
+          "自動コピーできませんでした。出力欄から手動でコピーしてください。";
+      }
+
+      document.body.removeChild(area);
+    });
+  }
+
+  ids.forEach(function (id) {
+    $(id).addEventListener("input", generate);
+    $(id).addEventListener("change", generate);
+  });
+
+  document.querySelectorAll("[data-copy]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      copyOutput(button.dataset.copy);
+    });
+  });
+
+  $("togglePassword").addEventListener("click", function () {
+    const input = $("password");
+    const visible = input.type === "text";
+    input.type = visible ? "password" : "text";
+    $("togglePassword").textContent = visible ? "表示" : "非表示";
+  });
+
+  $("clearButton").addEventListener("click", function () {
+    $("host").value = "";
+    $("port").value = "";
+    $("user").value = "";
+    $("database").value = "";
+    $("password").value = "";
+    $("sslmode").value = "";
+    $("includePassword").checked = false;
+    generate();
+  });
+
+  $("sampleButton").addEventListener("click", function () {
+    Object.keys(defaults).forEach(function (key) {
+      if (key === "includePassword") {
+        $(key).checked = defaults[key];
+      } else {
+        $(key).value = defaults[key];
+      }
+    });
+    generate();
+  });
+
+  generate();
+})();
+</script>
+</body>
+</html>

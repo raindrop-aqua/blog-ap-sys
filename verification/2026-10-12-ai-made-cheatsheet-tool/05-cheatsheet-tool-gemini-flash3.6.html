@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL 保守用 psql コマンドチートシート</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        pgblue: {
+                            50: '#f0f4f8',
+                            100: '#d9e2ec',
+                            500: '#336791',
+                            600: '#2c597d',
+                            700: '#20405a',
+                            900: '#102a43',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Custom scrollbar for code blocks */
+        pre::-webkit-scrollbar {
+            height: 8px;
+        }
+        pre::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        pre::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen transition-colors duration-200">
+
+    <!-- Top Fixed Dynamic Parameter Toolbar -->
+    <header class="sticky top-0 z-50 bg-slate-800/95 backdrop-blur border-b border-slate-700 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-pgblue-500/20 text-pgblue-400 rounded-lg border border-pgblue-500/30">
+                        <i data-lucide="database" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold text-white leading-tight">PostgreSQL チートシート</h1>
+                        <p class="text-xs text-slate-400">保守運用用 psql & SQL コマンド集</p>
+                    </div>
+                </div>
+
+                <!-- Live Notification Toast -->
+                <div id="toast" class="hidden fixed bottom-6 right-6 bg-emerald-600 text-white px-4 py-2.5 rounded-lg shadow-2xl flex items-center space-x-2 border border-emerald-400/30 z-50 transition-all duration-300 transform translate-y-2">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    <span id="toast-message" class="text-sm font-medium">クリップボードにコピーしました！</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Connection Inputs Panel -->
+            <div class="mt-3 bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/80 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
+                        <i data-lucide="server" class="w-3.5 h-3.5"></i> ホスト名 / IP (-h)
+                    </label>
+                    <input type="text" id="param-host" placeholder="localhost" value="192.168.1.100" 
+                        class="w-full bg-slate-800 border border-slate-700 focus:border-pgblue-500 rounded-lg px-3 py-1.5 text-sm font-mono text-emerald-400 focus:outline-none focus:ring-1 focus:ring-pgblue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
+                        <i data-lucide="hash" class="w-3.5 h-3.5"></i> ポート (-p)
+                    </label>
+                    <input type="text" id="param-port" placeholder="5432" value="5432" 
+                        class="w-full bg-slate-800 border border-slate-700 focus:border-pgblue-500 rounded-lg px-3 py-1.5 text-sm font-mono text-emerald-400 focus:outline-none focus:ring-1 focus:ring-pgblue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i> ユーザー名 (-U)
+                    </label>
+                    <input type="text" id="param-user" placeholder="postgres" value="dbuser" 
+                        class="w-full bg-slate-800 border border-slate-700 focus:border-pgblue-500 rounded-lg px-3 py-1.5 text-sm font-mono text-emerald-400 focus:outline-none focus:ring-1 focus:ring-pgblue-500 transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1 flex items-center gap-1">
+                        <i data-lucide="database" class="w-3.5 h-3.5"></i> DB名 (-d)
+                    </label>
+                    <input type="text" id="param-db" placeholder="postgres" value="production_db" 
+                        class="w-full bg-slate-800 border border-slate-700 focus:border-pgblue-500 rounded-lg px-3 py-1.5 text-sm font-mono text-emerald-400 focus:outline-none focus:ring-1 focus:ring-pgblue-500 transition">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+
+        <!-- 1. 接続コマンド -->
+        <section class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/60 shadow-lg backdrop-blur-sm">
+            <div class="flex items-center space-x-3 mb-6 pb-3 border-b border-slate-700/60">
+                <div class="p-2 bg-blue-500/10 text-blue-400 rounded-lg">
+                    <i data-lucide="terminal" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white">1. 接続コマンド</h2>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-400"></span> 基本コマンド
+                    </h3>
+                    <div class="relative group">
+                        <pre class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-slate-200 overflow-x-auto text-sm"><code class="language-bash" id="cmd-basic-conn">psql -h <span class="var-host">192.168.1.100</span> -p <span class="var-port">5432</span> -U <span class="var-user">dbuser</span> -d <span class="var-db">production_db</span></code></pre>
+                        <button onclick="copyCode('cmd-basic-conn')" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-600/80 transition flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> コピー
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-400"></span> よく使う接続パターン
+                    </h3>
+                    <div class="space-y-3">
+                        <div>
+                            <p class="text-xs text-slate-400 mb-1">ローカルDB接続（デフォルト）</p>
+                            <div class="relative group">
+                                <pre class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-slate-200 overflow-x-auto text-sm"><code class="language-bash" id="cmd-conn-local">psql -U postgres -d mydb</code></pre>
+                                <button onclick="copyCode('cmd-conn-local')" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-600/80 transition flex items-center gap-1.5 shadow-sm">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> コピー
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 mb-1">リモート本番環境DB接続（入力フォーム連動）</p>
+                            <div class="relative group">
+                                <pre class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-slate-200 overflow-x-auto text-sm"><code class="language-bash" id="cmd-conn-remote">psql -h <span class="var-host">192.168.1.100</span> -p <span class="var-port">5432</span> -U <span class="var-user">dbuser</span> -d <span class="var-db">production_db</span></code></pre>
+                                <button onclick="copyCode('cmd-conn-remote')" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-600/80 transition flex items-center gap-1.5 shadow-sm">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> コピー
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-400"></span> 主要な接続オプション
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-700/50 flex items-start space-x-2">
+                            <span class="font-mono bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">-h, --host</span>
+                            <span class="text-slate-300">接続先ホスト（省略時はローカルホスト）</span>
+                        </div>
+                        <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-700/50 flex items-start space-x-2">
+                            <span class="font-mono bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">-p, --port</span>
+                            <span class="text-slate-300">ポート番号（デフォルト: <code class="text-emerald-400">5432</code>）</span>
+                        </div>
+                        <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-700/50 flex items-start space-x-2">
+                            <span class="font-mono bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">-U, --username</span>
+                            <span class="text-slate-300">接続ユーザー名</span>
+                        </div>
+                        <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-700/50 flex items-start space-x-2">
+                            <span class="font-mono bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">-d, --dbname</span>
+                            <span class="text-slate-300">接続データベース名</span>
+                        </div>
+                        <div class="p-3 bg-slate-900/60 rounded-lg border border-slate-700/50 flex items-start space-x-2 sm:col-span-2">
+                            <span class="font-mono bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-bold">-W</span>
+                            <span class="text-slate-300">パスワード入力を強制</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. psql メタコマンド（接続中に使用） -->
+        <section class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/60 shadow-lg backdrop-blur-sm">
+            <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-700/60">
+                <div class="p-2 bg-purple-500/10 text-purple-400 rounded-lg">
+                    <i data-lucide="command" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white">2. psql メタコマンド（接続中に使用）</h2>
+            </div>
+
+            <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 mb-6 flex items-start space-x-3 text-amber-300 text-xs sm:text-sm">
+                <i data-lucide="info" class="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-400"></i>
+                <div>
+                    <span class="font-semibold">Note:</span> コマンドの末尾に <code class="bg-amber-500/20 px-1.5 py-0.5 rounded font-mono font-bold text-amber-200">+</code> を付けると（例: <code class="bg-amber-500/20 px-1.5 py-0.5 rounded font-mono font-bold text-amber-200">\dt+</code>）、サイズや詳細説明などの拡張情報が表示されます。
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <!-- 接続・基本情報 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-purple-300 mb-3 flex items-center gap-2">
+                        <i data-lucide="link" class="w-4 h-4"></i> 接続・基本情報
+                    </h3>
+                    <div class="overflow-hidden rounded-xl border border-slate-700/80">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-900/80 text-slate-300 text-xs uppercase">
+                                <tr>
+                                    <th class="py-3 px-4 w-1/3">コマンド</th>
+                                    <th class="py-3 px-4">説明</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700/50 bg-slate-900/30">
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\l')">\l</code> または <code class="cursor-pointer hover:underline" onclick="copyText('\\list')">\list</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">データベース一覧を表示</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\c ' + document.getElementById('param-db').value)">\c &lt;DB名&gt;</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">指定したデータベースに接続を切り替える (例: <code class="text-emerald-400 font-mono">\c <span class="var-db">production_db</span></code>)</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\conninfo')">\conninfo</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">現在の接続情報（ユーザー、DB、ホスト、ポート等）を表示</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\q')">\q</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">psql を終了する</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- オブジェクト確認 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-purple-300 mb-3 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4"></i> オブジェクト確認
+                    </h3>
+                    <div class="overflow-hidden rounded-xl border border-slate-700/80">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-900/80 text-slate-300 text-xs uppercase">
+                                <tr>
+                                    <th class="py-3 px-4 w-1/3">コマンド</th>
+                                    <th class="py-3 px-4">説明</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700/50 bg-slate-900/30">
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\dt')">\dt</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">テーブル一覧を表示</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\d ')">\d &lt;テーブル名&gt;</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">テーブル構造（カラム、型、インデックス、制約など）を表示</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\dn')">\dn</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">スキーマ一覧を表示</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\du')">\du</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">ユーザー（ロール）一覧と権限を表示</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\di')">\di</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">インデックス一覧を表示</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\dv')">\dv</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">ビュー一覧を表示</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\df')">\df</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">関数・関数定義一覧を表示</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 表示・操作補助 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-purple-300 mb-3 flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-4 h-4"></i> 表示・操作補助
+                    </h3>
+                    <div class="overflow-hidden rounded-xl border border-slate-700/80">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-900/80 text-slate-300 text-xs uppercase">
+                                <tr>
+                                    <th class="py-3 px-4 w-1/3">コマンド</th>
+                                    <th class="py-3 px-4">説明</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-700/50 bg-slate-900/30">
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\x')">\x</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">縦表示（拡張表示）モードの ON / OFF 切替（列が多い場合に便利）</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\timing')">\timing</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">SQL実行時間の表示モード ON / OFF 切替</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\e')">\e</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">外部エディタ（vim等）を開いて直前のSQLを編集・実行</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\i ')">\i &lt;ファイルパス&gt;</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">指定したファイル内のSQLスクリプトを実行</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\o ')">\o &lt;ファイルパス&gt;</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">クエリ実行結果を指定ファイルに出力</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\?')">\?</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">psqlメタコマンドのヘルプ表示</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 px-4 font-mono text-purple-400 font-semibold"><code class="cursor-pointer hover:underline" onclick="copyText('\\h ')">\h &lt;SQL文&gt;</code></td>
+                                    <td class="py-2.5 px-4 text-slate-300">指定SQL命令の構文ヘルプ表示（例: <code class="text-emerald-400 font-mono">\h SELECT</code>）</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 保守管理用 SQL クエリ -->
+        <section class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/60 shadow-lg backdrop-blur-sm">
+            <div class="flex items-center space-x-3 mb-6 pb-3 border-b border-slate-700/60">
+                <div class="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                    <i data-lucide="activity" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white">3. 保守管理用 SQL クエリ</h2>
+            </div>
+
+            <div class="space-y-6">
+                <!-- ① 実行中クエリ・アクティブ接続の確認 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ① 実行中クエリ・アクティブ接続の確認
+                    </h3>
+                    <div class="relative group">
+                        <pre class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-slate-200 overflow-x-auto text-sm"><code class="language-sql" id="sql-active-queries">SELECT pid, usename, datname, client_addr, state, now() - query_start AS duration, query 
+FROM pg_stat_activity 
+WHERE state != 'idle' 
+ORDER BY duration DESC;</code></pre>
+                        <button onclick="copyCode('sql-active-queries')" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-600/80 transition flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> コピー
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ② 長時間処理・ロックの強制停止 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ② 長時間処理・ロックの強制停止
+                    </h3>
+                    <div class="relative group">
+                        <pre class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-slate-200 overflow-x-auto text-sm"><code class="language-sql" id="sql-terminate-backend">-- 指定したPIDのクエリを安全にキャンセル（接続は維持）
+SELECT pg_cancel_backend(<PID>);
+
+-- 指定したPIDのプロセス自体を強制終了
+SELECT pg_terminate_backend(<PID>);</code></pre>
+                        <button onclick="copyCode('sql-terminate-backend')" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-600/80 transition flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> コピー
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ③ テーブル別ディスク使用量の確認 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ③ テーブル別ディスク使用量の確認
+                    </h3>
+                    <div class="relative group">
+                        <pre class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-slate-200 overflow-x-auto text-sm"><code class="language-sql" id="sql-table-size">SELECT relname AS table_name,
+       pg_size_pretty(pg_total_relation_size(relid)) AS total_size,
+       pg_size_pretty(pg_relation_size(relid)) AS table_size,
+       pg_size_pretty(pg_indexes_size(relid)) AS index_size
+FROM pg_catalog.pg_statio_user_tables
+ORDER BY pg_total_relation_size(relid) DESC;</code></pre>
+                        <button onclick="copyCode('sql-table-size')" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-600/80 transition flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> コピー
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ④ データベース全体の容量確認 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> ④ データベース全体の容量確認
+                    </h3>
+                    <div class="relative group">
+                        <pre class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-slate-200 overflow-x-auto text-sm"><code class="language-sql" id="sql-db-size">SELECT datname, pg_size_pretty(pg_database_size(datname)) AS db_size
+FROM pg_database
+ORDER BY pg_database_size(datname) DESC;</code></pre>
+                        <button onclick="copyCode('sql-db-size')" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-600/80 transition flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> コピー
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. バックアップ・復元（CLIコマンド） -->
+        <section class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/60 shadow-lg backdrop-blur-sm">
+            <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-700/60">
+                <div class="p-2 bg-amber-500/10 text-amber-400 rounded-lg">
+                    <i data-lucide="hard-drive" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white">4. バックアップ・復元（CLIコマンド）</h2>
+            </div>
+
+            <p class="text-xs text-slate-400 mb-6 flex items-center gap-1">
+                <i data-lucide="info" class="w-4 h-4 text-slate-400"></i>
+                <code class="text-slate-300 font-mono">psql</code> 内部ではなく、OSのターミナルで実行します。入力フォームの接続パラメータが動的に反映されます。
+            </p>
+
+            <div class="space-y-6">
+                <!-- 単一データベースのバックアップ -->
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-400"></span> 単一データベースのバックアップ
+                    </h3>
+                    <div class="relative group">
+                        <pre class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-slate-200 overflow-x-auto text-sm"><code class="language-bash" id="cmd-backup"># プレーンテキスト形式
+pg_dump -h <span class="var-host">192.168.1.100</span> -p <span class="var-port">5432</span> -U <span class="var-user">dbuser</span> -d <span class="var-db">production_db</span> > backup.sql
+
+# カスタムフォーマット形式（圧縮・高速・pg_restore用）
+pg_dump -h <span class="var-host">192.168.1.100</span> -p <span class="var-port">5432</span> -F c -U <span class="var-user">dbuser</span> -d <span class="var-db">production_db</span> -f backup.dump</code></pre>
+                        <button onclick="copyCode('cmd-backup')" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-600/80 transition flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> コピー
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 単一データベースの復元 -->
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-400"></span> 単一データベースの復元
+                    </h3>
+                    <div class="relative group">
+                        <pre class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-slate-200 overflow-x-auto text-sm"><code class="language-bash" id="cmd-restore"># テキスト形式の復元
+psql -h <span class="var-host">192.168.1.100</span> -p <span class="var-port">5432</span> -U <span class="var-user">dbuser</span> -d <span class="var-db">production_db</span> -f backup.sql
+
+# カスタムフォーマット形式の復元
+pg_restore -h <span class="var-host">192.168.1.100</span> -p <span class="var-port">5432</span> -U <span class="var-user">dbuser</span> -d <span class="var-db">production_db</span> backup.dump</code></pre>
+                        <button onclick="copyCode('cmd-restore')" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-600/80 transition flex items-center gap-1.5 shadow-sm">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> コピー
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. 本番運用での安全対策テンプレート -->
+        <section class="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/60 shadow-lg backdrop-blur-sm">
+            <div class="flex items-center space-x-3 mb-4 pb-3 border-b border-slate-700/60">
+                <div class="p-2 bg-rose-500/10 text-rose-400 rounded-lg">
+                    <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-xl font-bold text-white">5. 本番運用での安全対策テンプレート</h2>
+            </div>
+
+            <p class="text-xs text-slate-400 mb-6">
+                誤った更新や削除を防ぐため、データ変更時は明示的にトランザクションを開始します。
+            </p>
+
+            <div>
+                <div class="relative group">
+                    <pre class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-slate-200 overflow-x-auto text-sm"><code class="language-sql" id="sql-transaction">-- 1. トランザクション開始
+BEGIN;
+
+-- 2. 変更操作の実行
+DELETE FROM users WHERE last_login < '2022-01-01';
+
+-- 3. 影響を受けた行数の確認（SELECT文で期待通りの状態かチェック）
+SELECT count(*) FROM users WHERE last_login < '2022-01-01';
+
+-- 4a. 問題なければ適用
+COMMIT;
+
+-- 4b. やり直す・問題がある場合は取り消し
+ROLLBACK;</code></pre>
+                    <button onclick="copyCode('sql-transaction')" class="absolute top-2.5 right-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-600/80 transition flex items-center gap-1.5 shadow-sm">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> コピー
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-4 py-6 border-t border-slate-800 text-center text-xs text-slate-500">
+        PostgreSQL Maintenance Cheat Sheet Application • Built with HTML & Tailwind CSS
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Parameter Sync Engine
+        const inputs = {
+            host: document.getElementById('param-host'),
+            port: document.getElementById('param-port'),
+            user: document.getElementById('param-user'),
+            db: document.getElementById('param-db')
+        };
+
+        function updateParameters() {
+            const hostVal = inputs.host.value.trim() || 'localhost';
+            const portVal = inputs.port.value.trim() || '5432';
+            const userVal = inputs.user.value.trim() || 'postgres';
+            const dbVal = inputs.db.value.trim() || 'postgres';
+
+            // Update all corresponding spans in code blocks
+            document.querySelectorAll('.var-host').forEach(el => el.textContent = hostVal);
+            document.querySelectorAll('.var-port').forEach(el => el.textContent = portVal);
+            document.querySelectorAll('.var-user').forEach(el => el.textContent = userVal);
+            document.querySelectorAll('.var-db').forEach(el => el.textContent = dbVal);
+        }
+
+        // Attach listeners to all input boxes
+        Object.values(inputs).forEach(input => {
+            input.addEventListener('input', updateParameters);
+        });
+
+        // Toast Notification System
+        let toastTimeout;
+        function showToast(message = "クリップボードにコピーしました！") {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.textContent = message;
+
+            toast.classList.remove('hidden');
+            toast.classList.remove('translate-y-2', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.classList.add('hidden'), 300);
+            }, 2000);
+        }
+
+        // Clipboard Copy Helper for Code Block Element ID
+        function copyCode(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const textToCopy = el.innerText;
+            
+            copyToClipboard(textToCopy);
+        }
+
+        // Clipboard Copy Helper for Direct Text String
+        function copyText(text) {
+            copyToClipboard(text);
+        }
+
+        // Cross-browser Clipboard Copy Implementation
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast();
+                }).catch(err => {
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                showToast("コピーに失敗しました");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            updateParameters();
+        });
+    </script>
+</body>
+</html>

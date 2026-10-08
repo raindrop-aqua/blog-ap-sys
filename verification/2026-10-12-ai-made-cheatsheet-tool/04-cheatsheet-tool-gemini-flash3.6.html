@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB接続文字列ジェネレーター</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto space-y-6">
+        
+        <!-- ヘッダー -->
+        <header class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                        <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path>
+                        </svg>
+                        DB接続文字列ジェネレーター
+                    </h1>
+                    <p class="text-sm text-slate-500 mt-1">パラメータを入力すると各種データベース接続文字列・コマンドをリアルタイムに生成します。</p>
+                </div>
+                <button id="reset-btn" class="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-md transition border border-slate-300">
+                    リセット
+                </button>
+            </div>
+        </header>
+
+        <!-- メインコンテンツ -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- パラメータ入力フォーム -->
+            <div class="lg:col-span-5 bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+                <h2 class="text-lg font-semibold text-slate-700 border-b border-slate-100 pb-2">接続パラメータ</h2>
+                
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">ホスト名 / IPアドレス</label>
+                        <input type="text" id="param-host" value="192.168.1.100" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">ポート番号</label>
+                            <input type="text" id="param-port" value="5432" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">DB名</label>
+                            <input type="text" id="param-database" value="production_db" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">ユーザー名</label>
+                            <input type="text" id="param-username" value="dbuser" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">パスワード</label>
+                            <input type="password" id="param-password" value="secret_pass" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">SSL モード</label>
+                        <select id="param-ssl" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                            <option value="disable">disable (無効)</option>
+                            <option value="allow">allow</option>
+                            <option value="prefer" selected>prefer (優先)</option>
+                            <option value="require">require (必須)</option>
+                            <option value="verify-ca">verify-ca</option>
+                            <option value="verify-full">verify-full</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">追加オプション (Key=Value 形式)</label>
+                        <input type="text" id="param-options" value="connect_timeout=10" placeholder="例: connect_timeout=10" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 接続文字列出力リスト -->
+            <div class="lg:col-span-7 space-y-4">
+                
+                <!-- Output 1: psql コマンド -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">psql Command</span>
+                        <button onclick="copyToClipboard('out-psql', this)" class="copy-btn text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            コピー
+                        </button>
+                    </div>
+                    <code id="out-psql" class="block bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs font-mono break-all selection:bg-indigo-500 selection:text-white"></code>
+                </div>
+
+                <!-- Output 2: URI Format -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600 bg-slate-100 px-2 py-0.5 rounded">Standard Connection URI</span>
+                        <button onclick="copyToClipboard('out-uri', this)" class="copy-btn text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            コピー
+                        </button>
+                    </div>
+                    <code id="out-uri" class="block bg-slate-900 text-indigo-300 p-3 rounded-lg text-xs font-mono break-all selection:bg-indigo-500 selection:text-white"></code>
+                </div>
+
+                <!-- Output 3: JDBC URL -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded">JDBC URL (Java)</span>
+                        <button onclick="copyToClipboard('out-jdbc', this)" class="copy-btn text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            コピー
+                        </button>
+                    </div>
+                    <code id="out-jdbc" class="block bg-slate-900 text-amber-300 p-3 rounded-lg text-xs font-mono break-all selection:bg-indigo-500 selection:text-white"></code>
+                </div>
+
+                <!-- Output 4: ADO.NET / C# -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded">ADO.NET / Npgsql (C#)</span>
+                        <button onclick="copyToClipboard('out-adonet', this)" class="copy-btn text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            コピー
+                        </button>
+                    </div>
+                    <code id="out-adonet" class="block bg-slate-900 text-sky-300 p-3 rounded-lg text-xs font-mono break-all selection:bg-indigo-500 selection:text-white"></code>
+                </div>
+
+                <!-- Output 5: Python (SQLAlchemy) -->
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Python (SQLAlchemy)</span>
+                        <button onclick="copyToClipboard('out-python', this)" class="copy-btn text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded transition flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            コピー
+                        </button>
+                    </div>
+                    <code id="out-python" class="block bg-slate-900 text-emerald-300 p-3 rounded-lg text-xs font-mono break-all selection:bg-indigo-500 selection:text-white"></code>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM要素の取得
+        const fields = {
+            host: document.getElementById('param-host'),
+            port: document.getElementById('param-port'),
+            database: document.getElementById('param-database'),
+            username: document.getElementById('param-username'),
+            password: document.getElementById('param-password'),
+            ssl: document.getElementById('param-ssl'),
+            options: document.getElementById('param-options')
+        };
+
+        const outputs = {
+            psql: document.getElementById('out-psql'),
+            uri: document.getElementById('out-uri'),
+            jdbc: document.getElementById('out-jdbc'),
+            adonet: document.getElementById('out-adonet'),
+            python: document.getElementById('out-python')
+        };
+
+        // 初期値保持（リセット用）
+        const defaultValues = {};
+        Object.keys(fields).forEach(key => {
+            defaultValues[key] = fields[key].value;
+        });
+
+        // 接続文字列生成メイン処理
+        function updateConnectionStrings() {
+            const host = fields.host.value.trim() || 'localhost';
+            const port = fields.port.value.trim() || '5432';
+            const database = fields.database.value.trim() || 'postgres';
+            const username = fields.username.value.trim() || 'postgres';
+            const password = fields.password.value;
+            const ssl = fields.ssl.value;
+            const extraOptions = fields.options.value.trim();
+
+            const encUser = encodeURIComponent(username);
+            const encPass = encodeURIComponent(password);
+
+            // 1. psql Command
+            let psql = `PGPASSWORD='${password}' psql -h ${host} -p ${port} -U ${username} -d ${database}`;
+            if (ssl !== 'prefer') {
+                psql += ` "sslmode=${ssl}"`;
+            }
+
+            // 2. Standard URI
+            let queryParams = [];
+            if (ssl) queryParams.push(`sslmode=${ssl}`);
+            if (extraOptions) queryParams.push(extraOptions);
+            const queryString = queryParams.length ? `?${queryParams.join('&')}` : '';
+            const uri = `postgresql://${encUser}:${encPass}@${host}:${port}/${database}${queryString}`;
+
+            // 3. JDBC URL
+            let jdbcParams = [`user=${username}`, `password=${password}`];
+            if (ssl) jdbcParams.push(`sslmode=${ssl}`);
+            if (extraOptions) jdbcParams.push(extraOptions);
+            const jdbc = `jdbc:postgresql://${host}:${port}/${database}?${jdbcParams.join('&')}`;
+
+            // 4. ADO.NET (Npgsql)
+            let adonetSsl = 'Prefer';
+            if (ssl === 'disable') adonetSsl = 'Disable';
+            if (ssl === 'require') adonetSsl = 'Require';
+            if (ssl === 'verify-full' || ssl === 'verify-ca') adonetSsl = 'Require';
+
+            let adonet = `Host=${host};Port=${port};Database=${database};Username=${username};Password=${password};SSL Mode=${adonetSsl};`;
+            if (extraOptions) {
+                adonet += ` ${extraOptions.replace(/&/g, ';')};`;
+            }
+
+            // 5. Python (SQLAlchemy)
+            const python = `postgresql+psycopg2://${encUser}:${encPass}@${host}:${port}/${database}${queryString}`;
+
+            // 画面反映
+            outputs.psql.textContent = psql;
+            outputs.uri.textContent = uri;
+            outputs.jdbc.textContent = jdbc;
+            outputs.adonet.textContent = adonet;
+            outputs.python.textContent = python;
+        }
+
+        // コピー機能
+        function copyToClipboard(elementId, btnElement) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btnElement.innerHTML;
+                btnElement.innerHTML = `
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-emerald-600 font-bold">完了!</span>
+                `;
+                btnElement.classList.add('bg-emerald-50');
+                setTimeout(() => {
+                    btnElement.innerHTML = originalText;
+                    btnElement.classList.remove('bg-emerald-50');
+                }, 1500);
+            });
+        }
+
+        // イベントリレー
+        Object.values(fields).forEach(input => {
+            input.addEventListener('input', updateConnectionStrings);
+            input.addEventListener('change', updateConnectionStrings);
+        });
+
+        // リセットボタンイベント
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            Object.keys(fields).forEach(key => {
+                fields[key].value = defaultValues[key];
+            });
+            updateConnectionStrings();
+        });
+
+        // 初回計算
+        updateConnectionStrings();
+    </script>
+</body>
+</html>
+```eof
+
+このファイルをダウンロードしてブラウザで開くだけでご利用いただけます。

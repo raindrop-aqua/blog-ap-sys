@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>PostgreSQL 保守担当者向けチートシート</title>
+
+<style>
+body{
+    font-family: Consolas, "Yu Gothic UI", sans-serif;
+    margin:20px;
+    background:#f5f6f8;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+}
+
+.connection-panel{
+    background:#fff;
+    padding:20px;
+    border-radius:8px;
+    margin-bottom:20px;
+    box-shadow:0 1px 4px rgba(0,0,0,.1);
+}
+
+.input-grid{
+    display:grid;
+    grid-template-columns:150px 1fr;
+    gap:10px;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+input{
+    padding:8px;
+    border:1px solid #ccc;
+    border-radius:4px;
+}
+
+.generated{
+    background:#272822;
+    color:#00ff88;
+    padding:15px;
+    border-radius:6px;
+    font-family:Consolas, monospace;
+    white-space:pre-wrap;
+}
+
+.cheatsheet{
+    background:#fff;
+    padding:20px;
+    border-radius:8px;
+    box-shadow:0 1px 4px rgba(0,0,0,.1);
+}
+
+pre{
+    white-space:pre-wrap;
+    line-height:1.5;
+}
+
+h1,h2{
+    margin-top:0;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="connection-panel">
+        <h2>接続情報入力</h2>
+
+        <div class="input-grid">
+            <label>ホスト</label>
+            <input id="host" value="192.168.1.100">
+
+            <label>ポート</label>
+            <input id="port" value="5432">
+
+            <label>DB名</label>
+            <input id="dbname" value="mydb">
+
+            <label>ユーザー</label>
+            <input id="user" value="postgres">
+
+            <label>パスワード</label>
+            <input id="password" type="password" value="">
+        </div>
+
+        <h3>psql コマンド</h3>
+        <div class="generated" id="psqlCommand"></div>
+
+        <h3>接続文字列形式</h3>
+        <div class="generated" id="connString"></div>
+
+        <h3>パスワード指定</h3>
+        <div class="generated" id="passwordCommand"></div>
+    </div>
+
+    <div class="cheatsheet">
+<pre>
+## PostgreSQL 保守担当者向けチートシート
+
+### 接続
+
+#### ローカル接続
+psql -U postgres
+
+#### データベースを指定して接続
+psql -U postgres -d mydb
+
+#### リモート接続
+psql -h 192.168.1.100 -p 5432 -U postgres -d mydb
+
+#### 接続文字列形式
+psql "host=192.168.1.100 port=5432 dbname=mydb user=postgres"
+
+#### パスワード指定（確認用）
+export PGPASSWORD='password'
+psql -h localhost -U postgres -d mydb
+
+## psqlメタコマンド
+
+### 接続情報確認
+\conninfo
+
+### データベース一覧
+\l
+または\list
+
+### データベース切替
+\c mydb
+
+### スキーマ一覧
+\dn
+
+### テーブル一覧
+\dt
+
+### ビュー一覧
+\dv
+
+### ユーザー一覧
+\du
+
+### テーブル定義確認
+\d users
+
+### テーブル詳細確認
+\d+ users
+
+### psql終了
+\q
+
+## 基本情報確認SQL
+
+### PostgreSQLバージョン
+SELECT version();
+
+### 現在のDB名
+SELECT current_database();
+
+### 現在のユーザー
+SELECT current_user;
+
+### 現在時刻
+SELECT now();
+
+## データ確認
+
+### 件数確認
+SELECT COUNT(*) FROM users;
+
+### 先頭100件表示
+SELECT *
+FROM users
+LIMIT 100;
+
+### テーブル構造確認
+SELECT *
+FROM information_schema.columns
+WHERE table_name = 'users';
+
+## セッション・接続確認
+
+### 現在の接続一覧
+SELECT *
+FROM pg_stat_activity;
+
+### 必要最低限の確認
+SELECT
+    pid,
+    usename,
+    application_name,
+    client_addr,
+    state,
+    query
+FROM pg_stat_activity;
+
+## ロック確認
+
+### ロック状況確認
+SELECT *
+FROM pg_locks;
+
+### ロック待ち確認
+SELECT
+    pid,
+    usename,
+    wait_event_type,
+    wait_event,
+    query
+FROM pg_stat_activity
+WHERE wait_event IS NOT NULL;
+
+## サイズ確認
+
+### テーブルサイズ
+SELECT
+    pg_size_pretty(
+        pg_relation_size('users')
+    );
+
+### テーブル総サイズ（インデックス含む）
+SELECT
+    pg_size_pretty(
+        pg_total_relation_size('users')
+    );
+
+### サイズの大きいテーブル一覧
+SELECT
+    relname,
+    pg_size_pretty(
+        pg_total_relation_size(relid)
+    ) AS total_size
+FROM pg_catalog.pg_statio_user_tables
+ORDER BY pg_total_relation_size(relid) DESC;
+
+## インデックス確認
+
+### テーブルのインデックス確認
+\d users
+
+### SQLで確認
+SELECT
+    indexname,
+    indexdef
+FROM pg_indexes
+WHERE tablename = 'users';
+
+## SQL性能調査
+
+### 実行計画確認
+EXPLAIN
+SELECT *
+FROM users
+WHERE id = 100;
+
+### 実行時間付き実行計画
+EXPLAIN ANALYZE
+SELECT *
+FROM users
+WHERE id = 100;
+
+## メンテナンス
+
+### 統計情報更新
+ANALYZE users;
+
+### 不要領域回収
+VACUUM users;
+
+### 両方実施
+VACUUM ANALYZE users;
+
+### 全データベース対象
+VACUUM ANALYZE;
+
+## 障害時によく使うコマンド
+
+### 長時間実行中のSQL確認
+SELECT
+    pid,
+    now() - query_start AS duration,
+    usename,
+    state,
+    query
+FROM pg_stat_activity
+WHERE state <> 'idle'
+ORDER BY duration DESC;
+
+### セッション終了
+SELECT pg_terminate_backend(PID);
+例 SELECT pg_terminate_backend(12345);
+※ 本番環境では影響確認必須
+
+## 保守担当の必須コマンド TOP10
+\conninfo
+\l
+\dt
+\d テーブル名
+SELECT version();
+SELECT current_database();
+SELECT current_user();
+SELECT * FROM pg_stat_activity;
+EXPLAIN ANALYZE ...
+VACUUM ANALYZE テーブル名;
+
+## 保守業務で最もよく使う確認フロー
+-- 接続確認
+\conninfo
+
+-- テーブル確認
+\dt
+
+-- テーブル構造確認
+\d テーブル名
+
+-- 接続状況確認
+SELECT * FROM pg_stat_activity;
+
+-- サイズ確認
+SELECT pg_size_pretty(
+    pg_total_relation_size('テーブル名')
+);
+
+-- SQL性能確認
+EXPLAIN ANALYZE SELECT ...;
+
+-- 統計更新
+VACUUM ANALYZE テーブル名;
+</pre>
+    </div>
+
+</div>
+
+<script>
+function updateCommands() {
+
+    const host = document.getElementById('host').value;
+    const port = document.getElementById('port').value;
+    const dbname = document.getElementById('dbname').value;
+    const user = document.getElementById('user').value;
+    const password = document.getElementById('password').value;
+
+    document.getElementById('psqlCommand').textContent =
+        `psql -h ${host} -p ${port} -U ${user} -d ${dbname}`;
+
+    document.getElementById('connString').textContent =
+        `psql "host=${host} port=${port} dbname=${dbname} user=${user}"`;
+
+    document.getElementById('passwordCommand').textContent =
+        `export PGPASSWORD='${password}'\npsql -h ${host} -p ${port} -U ${user} -d ${dbname}`;
+}
+
+document.querySelectorAll('input').forEach(i=>{
+    i.addEventListener('input', updateCommands);
+});
+
+updateCommands();
+</script>
+
+</body>
+</html>

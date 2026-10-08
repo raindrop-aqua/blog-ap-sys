@@ -1,0 +1,391 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PostgreSQL / psql 保守用チートシート</title><style>
+:root{--bg:#f6f7f9;--panel:#fff;--text:#202124;--muted:#5f6368;--border:#d9dce1;--code:#f1f3f4;--accent:#2563eb;--accent2:#1d4ed8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;line-height:1.7}
+main{max-width:1050px;margin:0 auto;padding:28px 20px 70px;background:var(--panel);min-height:100vh}
+h1{font-size:30px;line-height:1.3;margin:0 0 28px;padding-bottom:16px;border-bottom:2px solid var(--border)}h2{font-size:24px;margin:42px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}h3{font-size:19px;margin:28px 0 10px}p{margin:8px 0}ul{padding-left:28px}
+pre{background:var(--code);border:1px solid var(--border);border-radius:8px;padding:14px 16px;overflow:auto;white-space:pre-wrap}code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;font-size:.92em}:not(pre)>code{background:var(--code);padding:2px 5px;border-radius:4px}
+table{border-collapse:collapse;width:100%;margin:14px 0 22px}th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}th{background:#f0f2f5}
+.conn-tool{margin:14px 0 20px;padding:16px;border:1px solid #b9c7e8;border-radius:10px;background:#f8fbff}.conn-fields{display:grid;grid-template-columns:repeat(4,minmax(140px,1fr));gap:10px;margin-bottom:14px}
+.conn-fields label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:13px}.conn-fields input{font:inherit;padding:8px 9px;border:1px solid #bfc5ce;border-radius:6px;background:white}
+.generated{display:flex;gap:10px;align-items:center}.generated code{display:block;flex:1;padding:10px 12px;background:#111827;color:#f9fafb;border-radius:7px;overflow:auto}
+button{border:0;border-radius:7px;padding:9px 13px;background:var(--accent);color:white;font-weight:600;cursor:pointer}button:hover{background:var(--accent2)}.hint{color:var(--muted);font-size:12px;margin-top:8px}
+@media(max-width:760px){main{padding:20px 13px}.conn-fields{grid-template-columns:1fr 1fr}.generated{align-items:stretch;flex-direction:column}}
+</style></head><body><main><h1>PostgreSQL / psql 保守用チートシート</h1>
+<h2>1. psqlへの接続</h2>
+<h3>基本形</h3>
+
+<div class="conn-tool" data-conn-tool>
+  <div class="conn-fields">
+    <label>ホスト名 <input data-field="host" value="localhost"></label>
+    <label>ポート番号 <input data-field="port" value="5432" inputmode="numeric"></label>
+    <label>ユーザー名 <input data-field="user" value="postgres"></label>
+    <label>データベース名 <input data-field="db" value="mydb"></label>
+  </div>
+  <div class="generated">
+    <code data-output>psql -h localhost -p 5432 -U postgres -d mydb</code>
+    <button type="button" data-copy>コピー</button>
+  </div>
+  <div class="hint">接続文字列の可変部分だけを編集できます。下の該当コマンドにも自動反映されます。</div>
+</div>
+
+<p>例：</p>
+<pre class="linked-conn"><code data-linked-output>psql -h localhost -p 5432 -U postgres -d mydb</code></pre>
+<h3>ローカル接続</h3>
+<pre><code class="language-bash">psql -U postgres</code></pre>
+<p>環境によっては、</p>
+<pre><code class="language-bash">psql</code></pre>
+<p>だけで接続できる場合もある。</p>
+<h3>主なオプション</h3>
+<p>| オプション | 意味                     |</p>
+<p>| ----- | ---------------------- |</p>
+<p>| <code>-h</code>  | PostgreSQLサーバーのホスト名/IP |</p>
+<p>| <code>-p</code>  | ポート番号（通常 <code>5432</code>）       |</p>
+<p>| <code>-U</code>  | PostgreSQLユーザー         |</p>
+<p>| <code>-d</code>  | データベース名                |</p>
+<p>| <code>-f</code>  | SQLファイルを実行             |</p>
+<p>---</p>
+<h1>2. 接続直後に確認すること</h1>
+<h2>現在の接続情報</h2>
+<pre><code class="language-text">\conninfo</code></pre>
+<p>接続先DB、ユーザー、ホスト、ポートなどを確認できる。</p>
+<p><strong>本番DBで作業する前には必ず確認する。</strong></p>
+<p>---</p>
+<h2>PostgreSQLのバージョン</h2>
+<pre><code class="language-sql">SELECT version();</code></pre>
+<p>またはシェルから：</p>
+<pre><code class="language-bash">psql --version</code></pre>
+<p>---</p>
+<h2>現在のユーザー</h2>
+<pre><code class="language-sql">SELECT current_user;</code></pre>
+<h2>現在のデータベース</h2>
+<pre><code class="language-sql">SELECT current_database();</code></pre>
+<h2>現在日時</h2>
+<pre><code class="language-sql">SELECT now();</code></pre>
+<p>---</p>
+<h1>3. データベース操作</h1>
+<h2>データベース一覧</h2>
+<pre><code class="language-text">\l</code></pre>
+<p>または：</p>
+<pre><code class="language-text">\list</code></pre>
+<p>---</p>
+<h2>データベースを切り替える</h2>
+<pre><code class="language-text">\c データベース名</code></pre>
+<p>例：</p>
+<pre><code class="language-text">\c mydb</code></pre>
+<p>ユーザーも変更：</p>
+<pre><code class="language-text">\c mydb admin</code></pre>
+<p>---</p>
+<h1>4. スキーマ・テーブル確認</h1>
+<h2>スキーマ一覧</h2>
+<pre><code class="language-text">\dn</code></pre>
+<p>---</p>
+<h2>テーブル一覧</h2>
+<pre><code class="language-text">\dt</code></pre>
+<p>特定スキーマ：</p>
+<pre><code class="language-text">\dt public.*</code></pre>
+<p>すべてのスキーマ：</p>
+<pre><code class="language-text">\dt *.*</code></pre>
+<p>※ 大規模DBでは大量に表示される場合がある。</p>
+<p>---</p>
+<h1>5. テーブル定義の確認</h1>
+<h2>基本</h2>
+<pre><code class="language-text">\d テーブル名</code></pre>
+<p>例：</p>
+<pre><code class="language-text">\d users</code></pre>
+<p>---</p>
+<h2>詳細情報</h2>
+<pre><code class="language-text">\d+ テーブル名</code></pre>
+<p>インデックスなどの詳細も確認できる。</p>
+<p>---</p>
+<h1>6. SQLの基本</h1>
+<h2>SELECT</h2>
+<pre><code class="language-sql">SELECT * FROM users;</code></pre>
+<p>---</p>
+<h2>件数確認</h2>
+<pre><code class="language-sql">SELECT COUNT(*) FROM users;</code></pre>
+<p>---</p>
+<h2>上位10件</h2>
+<pre><code class="language-sql">SELECT *
+FROM users
+LIMIT 10;</code></pre>
+<p>---</p>
+<h2>条件指定</h2>
+<pre><code class="language-sql">SELECT *
+FROM users
+WHERE id = 100;</code></pre>
+<p>---</p>
+<h2>複数条件</h2>
+<pre><code class="language-sql">SELECT *
+FROM users
+WHERE id &gt; 100
+  AND status = &#x27;active&#x27;;</code></pre>
+<p>---</p>
+<h2>並び替え</h2>
+<pre><code class="language-sql">SELECT *
+FROM users
+ORDER BY id DESC;</code></pre>
+<p>---</p>
+<h1>7. SQL入力時の注意</h1>
+<p>SQLは通常、最後に <code>;</code> を付けて実行する。</p>
+<pre><code class="language-sql">SELECT *
+FROM users
+WHERE id = 100;</code></pre>
+<p>文字列：</p>
+<pre><code class="language-sql">&#x27;Taro&#x27;</code></pre>
+<p>テーブル名・カラム名などの識別子：</p>
+<pre><code class="language-sql">&quot;users&quot;</code></pre>
+<p><code>&#x27;</code> と <code>&quot;</code> を混同しない。</p>
+<p>---</p>
+<h1>8. SQL入力をキャンセル</h1>
+<p>入力途中のSQLをキャンセル：</p>
+<pre><code class="language-text">\cancel</code></pre>
+<p>---</p>
+<h1>9. 表示を見やすくする</h1>
+<h2>縦表示</h2>
+<pre><code class="language-text">\x</code></pre>
+<p>例えば、</p>
+<pre><code class="language-sql">SELECT *
+FROM users
+WHERE id = 1;</code></pre>
+<p>通常の横表示ではなく、</p>
+<pre><code class="language-text">-[ RECORD 1 ]-----
+id    | 1
+name  | Taro
+email | taro@example.com</code></pre>
+<p>のように表示できる。</p>
+<p>もう一度、</p>
+<pre><code class="language-text">\x</code></pre>
+<p>で元に戻る。</p>
+<p>---</p>
+<h1>10. SQL実行時間を確認</h1>
+<p>有効化：</p>
+<pre><code class="language-text">\timing on</code></pre>
+<p>例：</p>
+<pre><code class="language-text">SELECT COUNT(*) FROM users;</code></pre>
+<p>実行結果に、</p>
+<pre><code class="language-text">Time: 12.345 ms</code></pre>
+<p>のように実行時間が表示される。</p>
+<p>無効化：</p>
+<pre><code class="language-text">\timing off</code></pre>
+<p>---</p>
+<h1>11. SQLファイルを実行</h1>
+<h2>psql内から</h2>
+<pre><code class="language-text">\i update.sql</code></pre>
+<p>---</p>
+<h2>シェルから</h2>
+<pre class="linked-conn"><code data-linked-output-file>psql -h localhost -U postgres -d mydb -f update.sql</code></pre>
+<p>---</p>
+<h1>12. トランザクション</h1>
+<p>データ変更を伴う保守作業では重要。</p>
+<h2>開始</h2>
+<pre><code class="language-sql">BEGIN;</code></pre>
+<h2>変更</h2>
+<pre><code class="language-sql">UPDATE users
+SET name = &#x27;Taro&#x27;
+WHERE id = 100;</code></pre>
+<h2>結果確認</h2>
+<pre><code class="language-sql">SELECT *
+FROM users
+WHERE id = 100;</code></pre>
+<h2>問題なければ確定</h2>
+<pre><code class="language-sql">COMMIT;</code></pre>
+<h2>問題があれば取り消し</h2>
+<pre><code class="language-sql">ROLLBACK;</code></pre>
+<h3>基本パターン</h3>
+<pre><code class="language-text">BEGIN;
+  ↓
+UPDATE / DELETE
+  ↓
+SELECTで結果確認
+  ↓
+問題なし → COMMIT;
+問題あり → ROLLBACK;</code></pre>
+<p><strong>本番DBでUPDATE/DELETEする場合は、トランザクションを意識する。</strong></p>
+<p>---</p>
+<h1>13. psqlのヘルプ</h1>
+<h2>psqlコマンド一覧</h2>
+<pre><code class="language-text">\?</code></pre>
+<h2>SQLコマンドのヘルプ</h2>
+<pre><code class="language-text">\h</code></pre>
+<p>例：</p>
+<pre><code class="language-text">\h SELECT</code></pre>
+<pre><code class="language-text">\h CREATE TABLE</code></pre>
+<p>---</p>
+<h1>14. SQL履歴</h1>
+<pre><code class="language-text">\s</code></pre>
+<p>環境によっては、</p>
+<pre><code class="language-text">~/.psql_history</code></pre>
+<p>にも履歴が保存される。</p>
+<p>---</p>
+<h1>15. psqlからシェルコマンド</h1>
+<pre><code class="language-text">\! コマンド</code></pre>
+<p>例：</p>
+<pre><code class="language-text">\! pwd</code></pre>
+<pre><code class="language-text">\! ls</code></pre>
+<p>※ サーバー上で作業している場合、どのマシン上で実行されるか注意する。</p>
+<p>---</p>
+<h1>16. psql終了</h1>
+<pre><code class="language-text">\q</code></pre>
+<p>---</p>
+<h1>17. よく使うコマンド早見表</h1>
+<p>| コマンド           | 用途                |</p>
+<p>| -------------- | ----------------- |</p>
+<p>| <code>\conninfo</code>    | 現在の接続情報           |</p>
+<p>| <code>\l</code>           | DB一覧              |</p>
+<p>| <code>\c DB名</code>       | DB切り替え            |</p>
+<p>| <code>\dn</code>          | スキーマ一覧            |</p>
+<p>| <code>\dt</code>          | テーブル一覧            |</p>
+<p>| <code>\dt public.*</code> | publicスキーマのテーブル一覧 |</p>
+<p>| <code>\d テーブル名</code>     | テーブル定義            |</p>
+<p>| <code>\d+ テーブル名</code>    | 詳細なテーブル定義         |</p>
+<p>| <code>\x</code>           | 縦表示切り替え           |</p>
+<p>| <code>\timing on</code>   | SQL実行時間を表示        |</p>
+<p>| <code>\timing off</code>  | SQL実行時間表示を解除      |</p>
+<p>| <code>\i ファイル.sql</code>  | SQLファイル実行         |</p>
+<p>| <code>\s</code>           | SQL履歴             |</p>
+<p>| <code>\?</code>           | psqlコマンドヘルプ       |</p>
+<p>| <code>\h</code>           | SQLヘルプ            |</p>
+<p>| <code>\cancel</code>      | 入力中のSQLをキャンセル     |</p>
+<p>| <code>\! コマンド</code>      | シェルコマンド実行         |</p>
+<p>| <code>\q</code>           | psql終了            |</p>
+<p>---</p>
+<h1>18. よく使うSQL早見表</h1>
+<p>| SQL                             | 用途              |</p>
+<p>| ------------------------------- | --------------- |</p>
+<p>| <code>SELECT version();</code>             | PostgreSQLバージョン |</p>
+<p>| <code>SELECT current_user;</code>          | 現在のユーザー         |</p>
+<p>| <code>SELECT current_database();</code>    | 現在のDB           |</p>
+<p>| <code>SELECT now();</code>                 | 現在日時            |</p>
+<p>| <code>SELECT * FROM table;</code>          | データ確認           |</p>
+<p>| <code>SELECT COUNT(*) FROM table;</code>   | 件数確認            |</p>
+<p>| <code>SELECT * FROM table LIMIT 10;</code> | 先頭10件確認         |</p>
+<p>| <code>SELECT ... WHERE ...;</code>         | 条件検索            |</p>
+<p>| <code>BEGIN;</code>                        | トランザクション開始      |</p>
+<p>| <code>COMMIT;</code>                       | 変更確定            |</p>
+<p>| <code>ROLLBACK;</code>                     | 変更取り消し          |</p>
+<p>---</p>
+<h1>19. 保守作業の基本フロー</h1>
+<h2>① 接続</h2>
+<pre class="linked-conn"><code data-linked-output-flow>psql -h localhost -p 5432 -U postgres -d mydb</code></pre>
+<h2>② 接続先確認</h2>
+<pre><code class="language-text">\conninfo</code></pre>
+<h2>③ DB・スキーマ確認</h2>
+<pre><code class="language-text">\l
+\dn</code></pre>
+<h2>④ テーブル確認</h2>
+<pre><code class="language-text">\dt</code></pre>
+<h2>⑤ テーブル構造確認</h2>
+<pre><code class="language-text">\d テーブル名</code></pre>
+<h2>⑥ 必要なデータをSELECT</h2>
+<pre><code class="language-sql">SELECT *
+FROM テーブル名
+LIMIT 10;</code></pre>
+<h2>⑦ データ変更が必要ならトランザクション</h2>
+<pre><code class="language-sql">BEGIN;</code></pre>
+<h2>⑧ UPDATE / DELETE</h2>
+<pre><code class="language-sql">UPDATE ...;</code></pre>
+<p>または</p>
+<pre><code class="language-sql">DELETE ...;</code></pre>
+<h2>⑨ 結果確認</h2>
+<pre><code class="language-sql">SELECT ...;</code></pre>
+<h2>⑩ 問題なければ確定</h2>
+<pre><code class="language-sql">COMMIT;</code></pre>
+<p>問題があれば：</p>
+<pre><code class="language-sql">ROLLBACK;</code></pre>
+<h2>⑪ 終了</h2>
+<pre><code class="language-text">\q</code></pre>
+<p>---</p>
+<h1>20. 本番DBでの注意事項</h1>
+<h3>最初に必ず接続先を確認</h3>
+<pre><code class="language-text">\conninfo</code></pre>
+<p>特に、</p>
+<ul>
+<li>本番</li>
+<li>ステージング</li>
+<li>開発</li>
+<li>ローカル</li>
+</ul>
+<p>を間違えない。</p>
+<p>---</p>
+<h3>UPDATE / DELETE の前にSELECT</h3>
+<p>例えば、</p>
+<pre><code class="language-sql">SELECT *
+FROM users
+WHERE id = 100;</code></pre>
+<p>で対象を確認してから、</p>
+<pre><code class="language-sql">UPDATE users
+SET status = &#x27;inactive&#x27;
+WHERE id = 100;</code></pre>
+<p>とする。</p>
+<p>---</p>
+<h3>WHERE句を確認</h3>
+<p>危険：</p>
+<pre><code class="language-sql">DELETE FROM users;</code></pre>
+<p>これはテーブルの全レコードを削除する。</p>
+<p>危険：</p>
+<pre><code class="language-sql">UPDATE users
+SET status = &#x27;inactive&#x27;;</code></pre>
+<p>これは全レコードを更新する。</p>
+<p>基本的には、</p>
+<pre><code class="language-sql">DELETE FROM users
+WHERE id = 100;</code></pre>
+<pre><code class="language-sql">UPDATE users
+SET status = &#x27;inactive&#x27;
+WHERE id = 100;</code></pre>
+<p>のように対象を限定する。</p>
+<p>---</p>
+<h3>可能ならトランザクションを使用</h3>
+<pre><code class="language-sql">BEGIN;
+
+UPDATE users
+SET status = &#x27;inactive&#x27;
+WHERE id = 100;
+
+SELECT *
+FROM users
+WHERE id = 100;
+
+-- 問題なければ
+COMMIT;
+
+-- 問題があれば
+-- ROLLBACK;</code></pre>
+<p>---</p>
+<h1>21. 最低限これだけ覚える</h1>
+<p>最初は以下だけでも十分。</p>
+<pre><code class="language-text">\conninfo     接続先確認
+\l            DB一覧
+\c DB名       DB切り替え
+\dn           スキーマ一覧
+\dt           テーブル一覧
+\d テーブル   テーブル構造
+\x            縦表示
+\timing on    実行時間
+\q            終了</code></pre>
+<p>SQL：</p>
+<pre><code class="language-sql">SELECT * FROM table LIMIT 10;
+
+SELECT COUNT(*) FROM table;
+
+BEGIN;
+
+UPDATE ...;
+
+DELETE ...;
+
+COMMIT;
+
+ROLLBACK;</code></pre>
+<p><strong>特に本番環境では <code>\conninfo</code> → SELECT確認 → BEGIN → 変更 → SELECT確認 → COMMIT/ROLLBACK の流れを習慣にする。</strong></p></main><script>
+(()=>{const r=document.querySelector('[data-conn-tool]');if(!r)return;
+const g=n=>r.querySelector(`[data-field="${n}"]`).value,o=r.querySelector('[data-output]');
+const u=()=>{const h=g('host'),p=g('port'),v=g('user'),d=g('db'),c=`psql -h ${h} -p ${p} -U ${v} -d ${d}`;
+o.textContent=c;document.querySelectorAll('[data-linked-output]').forEach(e=>e.textContent=c);
+document.querySelectorAll('[data-linked-output-file]').forEach(e=>e.textContent=`psql -h ${h} -U ${v} -d ${d} -f update.sql`);
+document.querySelectorAll('[data-linked-output-flow]').forEach(e=>e.textContent=c)};
+r.querySelectorAll('input').forEach(i=>i.addEventListener('input',u));
+r.querySelector('[data-copy]').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(o.textContent);
+const b=r.querySelector('[data-copy]'),old=b.textContent;b.textContent='コピーしました';setTimeout(()=>b.textContent=old,1200)}
+catch{alert('コピーできませんでした。コマンドを選択してコピーしてください。')}});u()})();
+</script></body></html>

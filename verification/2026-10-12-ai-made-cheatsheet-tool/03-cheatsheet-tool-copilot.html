@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PostgreSQL 接続文字列生成ツール</title>
+
+<style>
+body {
+    font-family: "Yu Gothic", sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 30px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.1);
+}
+
+h1 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: bold;
+    padding-top: 8px;
+}
+
+input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+}
+
+.output {
+    margin-top: 25px;
+}
+
+.output-box {
+    background: #272822;
+    color: #f8f8f2;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin-bottom: 10px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+button {
+    background: #0067b8;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #004e8c;
+}
+
+.section-title {
+    margin-top: 25px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #34495e;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>PostgreSQL 接続文字列生成ツール</h1>
+
+<div class="grid">
+
+<label>Host</label>
+<input id="host" value="localhost">
+
+<label>Port</label>
+<input id="port" value="5432">
+
+<label>Database</label>
+<input id="dbname" value="mydb">
+
+<label>User</label>
+<input id="user" value="postgres">
+
+<label>Password</label>
+<input id="password" type="password" value="password">
+
+</div>
+
+<div class="section-title">psql接続コマンド</div>
+
+<div class="output-box" id="psqlCmd"></div>
+<button onclick="copyText('psqlCmd')">コピー</button>
+
+
+<div class="section-title">接続文字列</div>
+
+<div class="output-box" id="connStr"></div>
+<button onclick="copyText('connStr')">コピー</button>
+
+
+<div class="section-title">JDBC URL</div>
+
+<div class="output-box" id="jdbcUrl"></div>
+<button onclick="copyText('jdbcUrl')">コピー</button>
+
+</div>
+
+<script>
+
+function generate() {
+
+    const host = document.getElementById('host').value;
+    const port = document.getElementById('port').value;
+    const dbname = document.getElementById('dbname').value;
+    const user = document.getElementById('user').value;
+    const password = document.getElementById('password').value;
+
+    document.getElementById('psqlCmd').innerText =
+`PGPASSWORD='${password}' psql -h ${host} -p ${port} -U ${user} -d ${dbname}`;
+
+    document.getElementById('connStr').innerText =
+`host=${host} port=${port} dbname=${dbname} user=${user} password=${password}`;
+
+    document.getElementById('jdbcUrl').innerText =
+`jdbc:postgresql://${host}:${port}/${dbname}`;
+}
+
+function copyText(id) {
+
+    const text = document.getElementById(id).innerText;
+
+    navigator.clipboard.writeText(text)
+        .then(() => alert("コピーしました"))
+        .catch(() => alert("コピーに失敗しました"));
+}
+
+document.querySelectorAll("input").forEach(i => {
+    i.addEventListener("input", generate);
+});
+
+generate();
+
+</script>
+
+</body>
+</html>

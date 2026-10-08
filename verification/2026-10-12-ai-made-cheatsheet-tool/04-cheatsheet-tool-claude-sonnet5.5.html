@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PostgreSQL 接続文字列ビルダー</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --text: #1f2933; --muted: #6b7785;
+    --line: #d9dee5; --accent: #2b6cb0; --accent-bg: #ebf4ff; --warn: #b7791f; --warn-bg: #fffbea;
+    --code-bg: #f1f3f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14181d; --card: #1c2229; --text: #e6eaef; --muted: #98a3b0;
+      --line: #313a44; --accent: #63a4e8; --accent-bg: #1b2a3b; --warn: #e5b45a; --warn-bg: #2b2415;
+      --code-bg: #12161b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif; line-height: 1.6; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.3rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: .9rem; margin: 0 0 20px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  h2 { font-size: 1rem; margin: 0 0 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
+  input[type=text], input[type=password], select {
+    width: 100%; padding: 8px 10px; font-size: .95rem; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 6px; font-family: ui-monospace, Consolas, monospace; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .row label { display: inline; margin: 0; color: var(--text); }
+  .out { margin-bottom: 14px; }
+  .out:last-child { margin-bottom: 0; }
+  .out-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .out-head span { font-size: .85rem; font-weight: 600; }
+  pre { margin: 0; padding: 10px 12px; background: var(--code-bg); border: 1px solid var(--line);
+    border-radius: 6px; font-size: .88rem; white-space: pre-wrap; word-break: break-all;
+    font-family: ui-monospace, Consolas, monospace; }
+  button { font-size: .8rem; padding: 4px 12px; border-radius: 6px; border: 1px solid var(--line);
+    background: var(--card); color: var(--text); cursor: pointer; }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.ok { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+  .warn { background: var(--warn-bg); color: var(--warn); border: 1px solid var(--warn); border-radius: 6px;
+    padding: 8px 12px; font-size: .85rem; margin-top: 12px; display: none; }
+  .note { font-size: .8rem; color: var(--muted); margin-top: 8px; }
+  .reset { margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>PostgreSQL 接続文字列ビルダー</h1>
+  <p class="sub">可変部分を入力すると、各形式の接続文字列が自動で組み立てられます。</p>
+
+  <section>
+    <h2>接続情報</h2>
+    <div class="grid">
+      <div><label for="host">ホスト名</label><input type="text" id="host" value="localhost" autocomplete="off"></div>
+      <div><label for="port">ポート</label><input type="text" id="port" value="5432" inputmode="numeric" autocomplete="off"></div>
+      <div><label for="db">データベース名</label><input type="text" id="db" value="mydb" autocomplete="off"></div>
+      <div><label for="user">ユーザー名</label><input type="text" id="user" value="postgres" autocomplete="off"></div>
+      <div><label for="pass">パスワード(任意)</label><input type="password" id="pass" autocomplete="new-password"></div>
+      <div><label for="ssl">sslmode</label>
+        <select id="ssl">
+          <option value="">(指定しない)</option>
+          <option>disable</option><option>allow</option><option>prefer</option>
+          <option>require</option><option>verify-ca</option><option>verify-full</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <input type="checkbox" id="showPass"><label for="showPass">パスワードを表示する</label>
+      <input type="checkbox" id="inclPass" style="margin-left:16px"><label for="inclPass">出力にパスワードを含める</label>
+    </div>
+    <div class="warn" id="warn">パスワードが出力に含まれています。コマンド履歴や画面共有に残る可能性があるため、取り扱いに注意してください。</div>
+    <p class="note">パスワード以外の入力値はこのブラウザ内にのみ保存されます(次回起動時に復元)。パスワードは保存も送信もしません。</p>
+    <button class="reset" id="reset">初期値に戻す</button>
+  </section>
+
+  <section>
+    <h2>生成結果</h2>
+    <div id="outputs"></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var DEFAULTS = { host: "localhost", port: "5432", db: "mydb", user: "postgres", ssl: "" };
+  var KEY = "pg-conn-builder-v1";
+
+  function load() {
+    try {
+      var s = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (s) { $("host").value = s.host; $("port").value = s.port; $("db").value = s.db; $("user").value = s.user; $("ssl").value = s.ssl; }
+    } catch (e) {}
+  }
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({
+        host: $("host").value, port: $("port").value, db: $("db").value, user: $("user").value, ssl: $("ssl").value
+      }));
+    } catch (e) {}
+  }
+
+  // 値のエスケープ
+  function uriEnc(s) { return encodeURIComponent(s); }
+  function kvEnc(s) {           // libpq キーワード形式
+    if (s === "") return "''";
+    if (/^[A-Za-z0-9_.\-\/]+$/.test(s)) return s;
+    return "'" + s.replace(/\\/g, "\\\\").replace(/'/g, "\\'") + "'";
+  }
+  function shQuote(s) { return "'" + s.replace(/'/g, "'\\''") + "'"; }
+  function pgpassEnc(s) { return s.replace(/\\/g, "\\\\").replace(/:/g, "\\:"); }
+  function uriHost(h) { return (h.indexOf(":") >= 0 && h[0] !== "[") ? "[" + h + "]" : h; }
+
+  function build() {
+    var host = $("host").value.trim(), port = $("port").value.trim(), db = $("db").value.trim(),
+        user = $("user").value.trim(), pass = $("pass").value, ssl = $("ssl").value,
+        incl = $("inclPass").checked && pass !== "";
+    var P = "********";
+    var shownPass = incl ? pass : P;
+
+    // URI
+    var uri = "postgresql://";
+    if (user) { uri += uriEnc(user); if (pass) uri += ":" + uriEnc(incl ? pass : P).replace(/%2A/g, "*"); uri += "@"; }
+    uri += uriHost(host || "");
+    if (port) uri += ":" + port;
+    uri += "/" + uriEnc(db);
+    if (ssl) uri += "?sslmode=" + ssl;
+
+    // キーワード形式
+    var kv = [];
+    if (host) kv.push("host=" + kvEnc(host));
+    if (port) kv.push("port=" + kvEnc(port));
+    if (db) kv.push("dbname=" + kvEnc(db));
+    if (user) kv.push("user=" + kvEnc(user));
+    if (pass) kv.push("password=" + kvEnc(shownPass));
+    if (ssl) kv.push("sslmode=" + ssl);
+    var kvStr = kv.join(" ");
+
+    // psql オプション形式
+    var psql = "psql";
+    if (host) psql += " -h " + host;
+    if (port) psql += " -p " + port;
+    if (user) psql += " -U " + user;
+    if (db) psql += " -d " + db;
+    if (/[\s'"$`\\]/.test(psql)) {
+      psql = "psql" + (host ? " -h " + shQuote(host) : "") + (port ? " -p " + shQuote(port) : "") +
+             (user ? " -U " + shQuote(user) : "") + (db ? " -d " + shQuote(db) : "");
+    }
+
+    // psql URI 形式
+    var psqlUri = "psql " + shQuote(uri);
+
+    // 環境変数
+    var env = [];
+    if (host) env.push("export PGHOST=" + shQuote(host));
+    if (port) env.push("export PGPORT=" + shQuote(port));
+    if (db) env.push("export PGDATABASE=" + shQuote(db));
+    if (user) env.push("export PGUSER=" + shQuote(user));
+    if (pass) env.push("export PGPASSWORD=" + shQuote(shownPass));
+    if (ssl) env.push("export PGSSLMODE=" + ssl);
+
+    // JDBC
+    var jdbc = "jdbc:postgresql://" + uriHost(host || "") + (port ? ":" + port : "") + "/" + uriEnc(db);
+    var q = [];
+    if (user) q.push("user=" + uriEnc(user));
+    if (pass) q.push("password=" + uriEnc(shownPass).replace(/%2A/g, "*"));
+    if (ssl) q.push("sslmode=" + ssl);
+    if (q.length) jdbc += "?" + q.join("&");
+
+    // .pgpass
+    var pgpass = [host || "*", port || "*", db || "*", user || "*", pass ? pgpassEnc(shownPass) : P].map(function (x, i) {
+      return i < 4 ? pgpassEnc(x) === x ? x : pgpassEnc(x) : x;
+    }).join(":");
+
+    return [
+      ["psql コマンド(オプション指定)", psql],
+      ["psql コマンド(接続URI)", psqlUri],
+      ["接続URI", uri],
+      ["キーワード/値 形式(libpq)", kvStr],
+      ["JDBC URL", jdbc],
+      ["環境変数(bash)", env.join("\n")],
+      [".pgpass の1行(~/.pgpass、chmod 600)", pgpass]
+    ];
+  }
+
+  function render() {
+    var items = build(), box = $("outputs");
+    box.innerHTML = "";
+    items.forEach(function (it) {
+      var d = document.createElement("div"); d.className = "out";
+      var h = document.createElement("div"); h.className = "out-head";
+      var t = document.createElement("span"); t.textContent = it[0];
+      var b = document.createElement("button"); b.textContent = "コピー";
+      var pre = document.createElement("pre"); pre.textContent = it[1];
+      b.onclick = function () {
+        var done = function () { b.textContent = "コピーしました"; b.className = "ok";
+          setTimeout(function () { b.textContent = "コピー"; b.className = ""; }, 1200); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(pre.textContent).then(done, fallback);
+        } else fallback();
+        function fallback() {
+          var r = document.createRange(); r.selectNodeContents(pre);
+          var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+          try { document.execCommand("copy"); done(); } catch (e) {}
+        }
+      };
+      h.appendChild(t); h.appendChild(b); d.appendChild(h); d.appendChild(pre); box.appendChild(d);
+    });
+    $("warn").style.display = ($("inclPass").checked && $("pass").value) ? "block" : "none";
+  }
+
+  function onChange() { save(); render(); }
+  ["host", "port", "db", "user", "pass", "ssl", "inclPass"].forEach(function (id) {
+    $(id).addEventListener("input", onChange);
+    $(id).addEventListener("change", onChange);
+  });
+  $("showPass").addEventListener("change", function () { $("pass").type = this.checked ? "text" : "password"; });
+  $("reset").addEventListener("click", function () {
+    $("host").value = DEFAULTS.host; $("port").value = DEFAULTS.port; $("db").value = DEFAULTS.db;
+    $("user").value = DEFAULTS.user; $("ssl").value = DEFAULTS.ssl; $("pass").value = ""; $("inclPass").checked = false;
+    onChange();
+  });
+
+  load(); render();
+})();
+</script>
+</body>
+</html>
