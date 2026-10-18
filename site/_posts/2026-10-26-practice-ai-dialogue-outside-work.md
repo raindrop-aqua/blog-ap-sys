@@ -3,7 +3,7 @@ layout: post
 title: "現場でAIが使えない間に、業務の外でやっておくこと ― 答えをもらうより、考えを持ち込む"
 date: 2026-10-26
 categories: [生成AIのきほん]
-tags: [Claude, ChatGPT, GitHub Copilot, 対話, 入口]
+tags: [Claude, ChatGPT, 対話, 入口]
 backlog_id: "KH1-09"
 image:
   path: /assets/img/posts/2026-10-26-practice-ai-dialogue-outside-work.png
