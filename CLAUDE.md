@@ -20,7 +20,7 @@ Local preview runs via [Apple Container](https://github.com/apple/container) (no
 ./preview.sh
 ```
 
-This builds the image and runs the container, mounting the current directory for hot reload (`--force_polling` so file changes are detected through the container). Stop with `Ctrl-C` (container auto-removes via `--rm`), or if running detached (`-d`):
+This builds the image and runs the container, mounting the current directory for hot reload (`--force_polling` so file changes are detected through the container). It also serves with `--drafts` and `--future`, so drafts and posts dated ahead of their publish day show up — the same set the PR check builds. In the preview, a future-dated post sits in the list as if it were already live; that says nothing about the real site, which only gets it at the 00:05 JST deploy on that date. Stop with `Ctrl-C` (container auto-removes via `--rm`), or if running detached (`-d`):
 
 ```sh
 container stop blog-preview
@@ -81,7 +81,7 @@ Claude が作るコミットは、メッセージの末尾に `Co-Authored-By:` 
 
 記事に付けるインフォグラフィック風のヘッダー画像は `/add-infographic` スキル（`.claude/skills/add-infographic/SKILL.md`）で作る。記事本文から載せる要素を拾い、`infographics/template.html` を差し替えてPNGに焼き、front matter の `image:` まで追記する。詳細は後述の「Infographics」。
 
-書きかけは `site/_drafts/` に置く。GitHub Actions のビルド（`jekyll build`）は `_drafts` を含めないのでデプロイされても公開されず、ローカルの `./preview.sh` は `--drafts` 付きで起動するため見た目だけ確認できる。
+書きかけは `site/_drafts/` に置く。GitHub Actions のビルド（`jekyll build`）は `_drafts` を含めないのでデプロイされても公開されず、ローカルの `./preview.sh` は `--drafts` 付きで起動するため見た目だけ確認できる。同じく `--future` も付いているので、`site/_posts/` に保存済みで公開日前の記事もプレビューで見られる。
 
 以下は保存する記事そのものの仕様。
 

@@ -112,7 +112,7 @@ ls site/_posts/ && ls site/_drafts/ 2>/dev/null
 
 `site/_drafts/<英語ハイフン区切りスラッグ>.md` に書く。front matter は `date` 以外を埋めておく（日付はフェーズ6で決める）。
 
-`_drafts` は GitHub Actions のビルド（`jekyll build`）の対象外なので、途中で push しても公開されない。ローカルの `./preview.sh` は `--drafts` 付きで起動するため、下書きのまま見た目を確認できる。
+`_drafts` は GitHub Actions のビルド（`jekyll build`）の対象外なので、途中で push しても公開されない。ローカルの `./preview.sh` は `--drafts` 付きで起動するため、下書きのまま見た目を確認できる。`--future` も付いているので、`_posts` に保存した公開日前の記事もそのまま確認できる。
 
 - 一次体験の段落は、フェーズ2で書き手が話した言葉をできるだけそのまま使う。滑らかに整えすぎない。話し言葉の生っぽさは `writing-style.md` 7章でいう固有性そのもの
 - 解説パートはあなたが書いてよい。ただし一般論で埋めない
