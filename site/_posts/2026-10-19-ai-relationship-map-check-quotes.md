@@ -5,6 +5,9 @@ categories: [Tips・小技]
 tags: [Claude, ChatGPT, Gemini, Microsoft Copilot, HTML, 相関図, 青空文庫, ステップアップ]
 date: 2026-10-19
 backlog_id: "TP-03"
+image:
+  path: /assets/img/posts/2026-10-19-ai-relationship-map-check-quotes.png
+  alt: 根拠を「原文のまま」引用させて本文と照合すると、本文にあった引用はClaude 56件中56件、Copilot 9件中8件、Gemini 12件中0件だった。ページ内検索は振り仮名の無い部分で引く
 ---
 
 登場人物が多いと誰が誰だか分からなくなる物語があります。そこでAIに頼んで、自分で操作できる相関図をHTML1枚で作ってもらいました。念のため相関図が正しいかをAIにチェックさせたところ、AIが「原文のまま」と言って示した根拠が、本文にないという事態が発生。4つのAIで試したら、1つは12件すべてが本文に無い文でした。
