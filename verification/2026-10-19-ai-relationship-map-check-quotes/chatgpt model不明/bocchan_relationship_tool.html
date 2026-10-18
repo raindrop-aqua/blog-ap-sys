@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>『坊っちゃん』人物相関図ツール</title>
+<style>
+:root{--bg:#f5f7fb;--ink:#1e293b;--muted:#64748b;--line:#cbd5e1;--blue:#2563eb;--red:#dc2626;--teal:#0f766e;--gold:#a16207}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
+header{padding:22px 24px 16px;background:#fff;border-bottom:1px solid #e2e8f0}h1{margin:0 0 6px;font-size:clamp(22px,3vw,32px)}header p{margin:0;color:var(--muted)}
+main{max-width:1500px;margin:auto;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+.panel{background:white;border:1px solid #e2e8f0;border-radius:14px;box-shadow:0 3px 12px #0f172a0a;overflow:hidden}
+.toolbar{padding:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-bottom:1px solid #e2e8f0}
+input,select,button{font:inherit;border:1px solid #cbd5e1;border-radius:8px;padding:9px 11px;background:#fff;color:var(--ink)}
+input{min-width:180px;flex:1}button{cursor:pointer}button:hover{background:#f1f5f9}.primary{background:#1d4ed8;color:#fff;border-color:#1d4ed8}.primary:hover{background:#1e40af}
+.graph-wrap{overflow:auto;max-height:75vh;background:linear-gradient(#fff,#fbfdff)}svg{display:block;min-width:980px;width:100%;height:auto}
+.edge{stroke:#94a3b8;stroke-width:2;fill:none;opacity:.9}.edge.trust{stroke:var(--teal)}.edge.conflict{stroke:var(--red)}.edge.family{stroke:var(--gold)}.edge.work{stroke:#64748b}.edge.romance{stroke:#be185d}
+.edge-label{font-size:12px;fill:#475569;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round}
+.node{cursor:pointer;transition:opacity .15s}.node rect{stroke-width:2;rx:12;filter:drop-shadow(0 2px 2px #0f172a10)}.node text{pointer-events:none;text-anchor:middle;fill:#172554}.node .name{font-weight:750;font-size:15px}.node .role{font-size:11px;fill:#475569}.node.selected rect{stroke:#111827;stroke-width:4}.node.dim{opacity:.13}.node.hidden{display:none}
+.cat-main rect{fill:#dbeafe;stroke:#2563eb}.cat-family rect{fill:#fef3c7;stroke:#d97706}.cat-school rect{fill:#dcfce7;stroke:#16a34a}.cat-antagonist rect{fill:#fee2e2;stroke:#dc2626}.cat-other rect{fill:#f3e8ff;stroke:#9333ea}
+.side{padding:16px}.side h2{font-size:18px;margin:0 0 12px}.side h3{font-size:14px;margin:18px 0 8px}.side p{line-height:1.65;margin:6px 0}.small{font-size:12px;color:var(--muted)}.legend{display:grid;gap:7px;font-size:13px}.legend span{display:flex;gap:8px;align-items:center}.swatch{width:24px;height:3px;display:inline-block;background:#94a3b8}.swatch.trust{background:var(--teal)}.swatch.conflict{background:var(--red)}.swatch.family{background:var(--gold)}.swatch.romance{background:#be185d}
+#relationList{padding:12px;max-height:260px;overflow:auto;border-top:1px solid #e2e8f0;font-size:13px}#relationList div{padding:6px 0;border-bottom:1px solid #f1f5f9}
+footer{max-width:1500px;margin:0 auto;padding:0 18px 24px;color:var(--muted);font-size:12px}
+@media(max-width:900px){main{grid-template-columns:1fr}.side{order:2}.graph-wrap{max-height:65vh}}
+</style>
+</head>
+<body>
+<header><h1>『坊っちゃん』登場人物相関図</h1><p>人物をクリックすると説明と関係を確認できます。検索・分類フィルター付きの単一HTMLツールです。</p></header>
+<main>
+<section class="panel">
+ <div class="toolbar">
+  <input id="search" type="search" placeholder="人物名・役職・説明で検索">
+  <select id="filter"><option value="all">すべての人物</option><option value="main">主人公</option><option value="family">家族・身近な人</option><option value="school">学校関係</option><option value="antagonist">対立する人物</option><option value="other">その他</option></select>
+  <button id="reset">全体表示</button><button id="export" class="primary">SVGを書き出す</button>
+ </div>
+ <div class="graph-wrap"><svg id="graph" viewBox="0 0 1200 800" role="img" aria-label="坊っちゃんの人物相関図">
+ <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#94a3b8"/></marker></defs>
+ <g id="edges"></g><g id="nodes"></g>
+ </svg></div>
+ <div id="relationList"></div>
+</section>
+<aside class="panel side">
+ <h2 id="detailName">人物を選択してください</h2>
+ <p id="detailRole" class="small">図の人物カードをクリックすると詳細が表示されます。</p>
+ <p id="detailDesc">検索や分類フィルターを使って、見たい人物を探せます。</p>
+ <h3>この人物の関係</h3><div id="detailRelations" class="small">人物を選択すると関係一覧が表示されます。</div>
+ <h3>線の意味</h3><div class="legend">
+ <span><i class="swatch trust"></i>信頼・協力</span><span><i class="swatch conflict"></i>対立・不信</span><span><i class="swatch family"></i>家族・身近な関係</span><span><i class="swatch romance"></i>恋愛・婚約</span><span><i class="swatch"></i>職務・その他</span>
+ </div>
+ <h3>使い方</h3><p class="small">人物をクリックして説明を表示。検索は人物名・役職・説明が対象です。「SVGを書き出す」で図を画像ファイルとして保存できます。</p>
+ <h3>出典・注意</h3><p class="small">原作：<a href="https://www.aozora.gr.jp/cards/000148/card752.html" target="_blank" rel="noopener">青空文庫『坊っちゃん』図書カード</a>。この図は主要人物を中心に関係を整理した学習用の概要図です。全ての一時的な登場人物を網羅するものではありません。解釈を含む関係は原作本文で確認してください。</p>
+</aside>
+</main>
+<footer>オフラインで動作します。HTMLファイルを保存してブラウザで開いてください。</footer>
+<script>
+const people=[
+{id:'b',name:'坊っちゃん',role:'主人公・数学教師',cat:'main',x:500,y:330,desc:'無鉄砲で正直な気性。四国の中学校に数学教師として赴任し、学校内の不正や欺瞞に反発する。'},
+{id:'kiyo',name:'清（きよ）',role:'家に仕える下女',cat:'family',x:100,y:100,desc:'幼い頃から坊っちゃんを深くかわいがり、坊っちゃんも清に特別な愛情と信頼を寄せる。'},
+{id:'father',name:'父（おやじ）',role:'坊っちゃんの父',cat:'family',x:100,y:290,desc:'坊っちゃんに厳しく、しばしば将来を案じる。母の死後に亡くなる。'},
+{id:'mother',name:'母',role:'坊っちゃんの母',cat:'family',x:100,y:455,desc:'兄をひいきし、坊っちゃんの乱暴な振る舞いを心配する。物語の早い段階で亡くなる。'},
+{id:'brother',name:'兄',role:'坊っちゃんの兄',cat:'family',x:100,y:620,desc:'坊っちゃんとは気が合わず、しばしばけんかをする。のちに九州へ赴任する。'},
+{id:'nephew',name:'清の甥',role:'裁判所の書記',cat:'other',x:300,y:680,desc:'清の親類。清が坊っちゃんと離れて暮らす間、清の身を引き受ける。'},
+{id:'principal',name:'校長（狸）',role:'中学校の校長',cat:'school',x:350,y:130,desc:'坊っちゃんの赴任先の校長。温厚な人物として描かれ、坊っちゃんの上司にあたる。'},
+{id:'yama',name:'山嵐',role:'数学教師',cat:'school',x:500,y:120,desc:'正義感の強い教師。坊っちゃんと協力し、赤シャツたちに対抗する。'},
+{id:'red',name:'赤シャツ',role:'教頭・英語系の教員幹部',cat:'antagonist',x:800,y:180,desc:'表向きは紳士的だが、策略的に立ち回る。坊っちゃんや山嵐と対立する中心人物。'},
+{id:'noda',name:'野だいこ',role:'画学教師',cat:'antagonist',x:970,y:350,desc:'赤シャツに追従する教師。坊っちゃんから強く反感を持たれる。'},
+{id:'uranari',name:'うらなり',role:'英語教師',cat:'school',x:790,y:440,desc:'おとなしく控えめな教師。マドンナの元婚約者で、赤シャツの行動に翻弄される。'},
+{id:'madonna',name:'マドンナ',role:'町で評判の女性',cat:'other',x:1010,y:570,desc:'うらなりの婚約者だった女性。赤シャツとの縁談をめぐって物語の人間関係に関わる。'},
+{id:'students',name:'生徒たち',role:'中学校の生徒',cat:'school',x:500,y:590,desc:'坊っちゃんをからかったり、いたずらをしたりして、赴任直後の坊っちゃんを困らせる。'},
+{id:'schoolstaff',name:'校内の教師たち',role:'同僚・教員',cat:'school',x:650,y:650,desc:'学校内の人間関係を形作る教員たち。個々の人物の関係は本文に沿って確認する。'},
+{id:'kan',name:'勘太郎',role:'幼少期の近所の少年',cat:'other',x:300,y:500,desc:'近所の質屋の息子。坊っちゃんの栗を盗みに来て、幼少期の騒動の相手となる。'},
+{id:'kane',name:'兼公',role:'大工の子ども仲間',cat:'other',x:300,y:570,desc:'坊っちゃんの幼少期のいたずら仲間として言及される。'},
+{id:'sumi',name:'角（かく）',role:'魚屋の子ども仲間',cat:'other',x:300,y:620,desc:'坊っちゃんの幼少期のいたずら仲間として言及される。'}
+];
+const links=[
+['b','kiyo','深い愛情・信頼','trust'],['b','father','親子・厳しい関係','family'],['b','mother','親子','family'],['b','brother','兄弟・不仲','family'],['kiyo','nephew','叔母と甥','family'],
+['b','principal','上司と部下','work'],['b','yama','協力・信頼','trust'],['b','red','対立・不信','conflict'],['b','noda','反感・対立','conflict'],['b','uranari','同僚・同情','work'],['b','students','教師と生徒・いたずら','work'],
+['red','noda','追従・協力','work'],['red','uranari','職場で圧力をかける','conflict'],['red','madonna','縁談をめぐる関係','romance'],['uranari','madonna','元婚約者','romance'],['yama','red','対立','conflict'],['yama','noda','対立','conflict'],['b','schoolstaff','同僚との関係','work'],
+['b','kan','幼少期のけんか','conflict'],['b','kane','いたずら仲間','work'],['b','sumi','いたずら仲間','work'],['brother','kiyo','清の行く先を相談','family']
+];
+const svgNS='http://www.w3.org/2000/svg', nodeLayer=document.getElementById('nodes'), edgeLayer=document.getElementById('edges');
+const byId=Object.fromEntries(people.map(p=>[p.id,p]));
+function el(tag,attrs={},txt=''){const e=document.createElementNS(svgNS,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(txt)e.textContent=txt;return e}
+function draw(){
+ edgeLayer.innerHTML='';nodeLayer.innerHTML='';
+ links.forEach(([a,b,label,type])=>{const p=byId[a],q=byId[b];const x1=p.x+65,y1=p.y+32,x2=q.x+65,y2=q.y+32;const mx=(x1+x2)/2,my=(y1+y2)/2;const line=el('line',{x1,y1,x2,y2,class:'edge '+type,'marker-end':'url(#arrow)','data-a':a,'data-b':b});edgeLayer.appendChild(line);const t=el('text',{x:mx,y:my-5,class:'edge-label','text-anchor':'middle','data-a':a,'data-b':b},label);edgeLayer.appendChild(t)});
+ people.forEach(p=>{const g=el('g',{class:'node cat-'+p.cat,transform:`translate(${p.x},${p.y})`,tabindex:'0',role:'button','aria-label':p.name,'data-id':p.id});g.appendChild(el('rect',{width:130,height:64,rx:12}));g.appendChild(el('text',{x:65,y:26,class:'name'},p.name));g.appendChild(el('text',{x:65,y:47,class:'role'},p.role.length>11?p.role.slice(0,10)+'…':p.role));g.addEventListener('click',()=>select(p.id));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(p.id)}});nodeLayer.appendChild(g)});
+}
+function select(id){const p=byId[id];document.getElementById('detailName').textContent=p.name;document.getElementById('detailRole').textContent=p.role;document.getElementById('detailDesc').textContent=p.desc;document.querySelectorAll('.node').forEach(n=>n.classList.toggle('selected',n.dataset.id===id));const rel=links.filter(l=>l[0]===id||l[1]===id);document.getElementById('detailRelations').innerHTML=rel.length?rel.map(l=>{const other=byId[l[0]===id?l[1]:l[0]];return `<p><b>${other.name}</b>：${l[2]}</p>`}).join(''):'登録された関係はありません。';document.getElementById('relationList').innerHTML='<b>'+p.name+' の関係一覧</b>'+rel.map(l=>`<div>${byId[l[0]===id?l[1]:l[0]].name} — ${l[2]}</div>`).join('');}
+function applyFilters(){const q=document.getElementById('search').value.trim().toLowerCase(),cat=document.getElementById('filter').value;const visible=new Set();people.forEach(p=>{const match=(!q||(p.name+p.role+p.desc).toLowerCase().includes(q))&&(cat==='all'||p.cat===cat);const n=document.querySelector(`.node[data-id="${p.id}"]`);n.classList.toggle('hidden',!match);if(match)visible.add(p.id)});document.querySelectorAll('.edge,.edge-label').forEach(e=>{const show=visible.has(e.dataset.a)&&visible.has(e.dataset.b);e.style.display=show?'':'none'});document.querySelectorAll('.node').forEach(n=>n.classList.remove('dim'));}
+document.getElementById('search').addEventListener('input',applyFilters);document.getElementById('filter').addEventListener('change',applyFilters);document.getElementById('reset').addEventListener('click',()=>{document.getElementById('search').value='';document.getElementById('filter').value='all';applyFilters();select('b')});
+document.getElementById('export').addEventListener('click',()=>{const clone=document.getElementById('graph').cloneNode(true);clone.setAttribute('xmlns',svgNS);const blob=new Blob([new XMLSerializer().serializeToString(clone)],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='bocchan-character-map.svg';a.click();URL.revokeObjectURL(url)});
+draw();select('b');
+</script>
+</body></html>

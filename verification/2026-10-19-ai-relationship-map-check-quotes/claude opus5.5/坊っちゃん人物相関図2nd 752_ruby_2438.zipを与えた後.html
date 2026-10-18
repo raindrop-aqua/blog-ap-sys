@@ -1,0 +1,216 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>坊っちゃん人物相関図</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Sans+JP:wght@400;500&display=swap">
+<style>
+/* Layout: 見出し → 凡例と章スライダー → 図(左)+人物カード(右)、狭い画面では縦積み */
+:root{
+  --bg:#F3F5F7; --panel:#FFFFFF; --ink:#1D2430; --muted:#5B6575; --line:#D5DAE1;
+  --ai:#2E4A7A; --mikata:#2F7A5F; --teki:#B3472F; --chuu:#6B7480; --machi:#9A6B1E;
+  --f-display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141922; --panel:#1C2330; --ink:#E6EAF0; --muted:#9AA4B3; --line:#2E3746;
+  --ai:#7E9BD1; --mikata:#5FB894; --teki:#E07A60; --chuu:#9AA3AE; --machi:#D3A452; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141922; --panel:#1C2330; --ink:#E6EAF0; --muted:#9AA4B3; --line:#2E3746;
+  --ai:#7E9BD1; --mikata:#5FB894; --teki:#E07A60; --chuu:#9AA3AE; --machi:#D3A452; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.7;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4vw,36px);line-height:1.2;margin:0;text-wrap:balance}
+.lead{margin:6px 0 0;color:var(--muted);max-width:68ch}
+.bar{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:13px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer;color:var(--ink)}
+.chapter{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;font-size:14px}
+.chapter label{font-family:var(--f-display);font-size:18px;min-width:9em}
+.chapter input{flex:1;min-width:200px;accent-color:var(--ai)}
+.chapter .hint{color:var(--muted);font-size:12.5px;flex-basis:100%}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px}
+@media (max-width:860px){.main{grid-template-columns:minmax(0,1fr)}}
+#cy{height:660px;background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0}
+@media (max-width:860px){#cy{height:520px}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0;align-self:start}
+.card h2{font-family:var(--f-display);font-size:22px;margin:0;line-height:1.3}
+.alias{color:var(--muted);font-size:13px;margin:2px 0 10px}
+.badge{display:inline-block;font-size:11px;letter-spacing:.04em;padding:1px 8px;border-radius:999px;border:1px solid currentColor;color:var(--muted)}
+.role{margin:8px 0 12px}
+.rels{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px}
+.rels li{font-size:13.5px}
+.rels .who{font-weight:500}
+.rels .ev{display:block;color:var(--muted);font-size:12.5px}
+.rels .ev q{font-family:var(--f-display)}
+.note{font-size:12.5px;color:var(--muted);max-width:80ch;margin:0}
+button.reset{font:inherit;font-size:13px;background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer}
+button.reset:focus-visible,input:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>坊っちゃん 人物相関図</h1>
+    <p class="lead">夏目漱石『坊っちゃん』(1906)の登場人物27人(組)と、その関係56本。すべて青空文庫の本文から抽出し、根拠の一節を確かめています。人物をタップすると、関係と根拠が章の順に出ます。</p>
+  </header>
+
+  <div class="chapter">
+    <label for="ch" id="chLabel">第十一章まで</label>
+    <input type="range" id="ch" min="1" max="11" value="11" aria-describedby="chHint">
+    <span class="hint" id="chHint">スライダーを動かすと、その章の時点までに登場した人物と関係だけを表示します。山嵐との誤解と和解のように、途中で変わる関係を追えます。</span>
+  </div>
+
+  <div class="bar" aria-label="凡例">
+    <span class="chip"><span class="dot" style="background:var(--ai)"></span>家族・東京</span>
+    <span class="chip"><span class="dot" style="background:var(--mikata)"></span>おれの味方・同情</span>
+    <span class="chip"><span class="dot" style="background:var(--teki)"></span>赤シャツ派</span>
+    <span class="chip"><span class="dot" style="background:var(--chuu)"></span>学校・中立</span>
+    <span class="chip"><span class="dot" style="background:var(--machi)"></span>松山の町</span>
+    <label class="toggle"><input type="checkbox" id="showMinor" checked>端役も表示</label>
+    <button class="reset" id="fit" type="button">全体を表示</button>
+  </div>
+
+  <div class="main">
+    <div id="cy" role="img" aria-label="坊っちゃんの登場人物の関係を示すネットワーク図"></div>
+    <aside class="card" id="card" aria-live="polite"></aside>
+  </div>
+
+  <p class="note">出典: 青空文庫『坊っちゃん』(底本 ちくま日本文学全集)。根拠の引用は本文の一節です。「赤シャツが新聞に記事を書かせた」など、作中人物の推測にもとづく関係はその旨を書き添えています。</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+<script>
+const KAN=["","一","二","三","四","五","六","七","八","九","十","十一"];
+const P=[
+ {id:"ore",label:"おれ",alias:"坊っちゃん/天麩羅先生/赤手拭",role:"語り手。物理学校を出て四国の中学の数学教師になる江戸っ子",g:"mikata",ch:1,x:520,y:330,main:1},
+ {id:"kiyo",label:"清",alias:"婆さん",role:"十年来召し使っている下女。おれを溺愛し、最後は東京で同居する",g:"ai",ch:1,x:330,y:110,main:1},
+ {id:"oyaji",label:"おやじ",alias:"",role:"父。のちに卒中で死去",g:"ai",ch:1,x:130,y:50,main:1},
+ {id:"haha",label:"母",alias:"おっかさん",role:"母。おれが幼いころ病死",g:"ai",ch:1,x:40,y:150,main:0},
+ {id:"ani",label:"兄",alias:"",role:"商業学校を出て九州の会社へ",g:"ai",ch:1,x:190,y:190,main:1},
+ {id:"oi",label:"清の甥",alias:"",role:"裁判所の書記",g:"ai",ch:1,x:400,y:20,main:0},
+ {id:"kantaro",label:"勘太郎",alias:"",role:"質屋・山城屋の倅",g:"ai",ch:1,x:40,y:290,main:0},
+ {id:"furukawa",label:"古川",alias:"",role:"田圃の持ち主",g:"ai",ch:1,x:100,y:380,main:0},
+ {id:"kanko",label:"兼公と角",alias:"大工の兼公/肴屋の角",role:"子ども時代のいたずら仲間",g:"ai",ch:1,x:250,y:300,main:0},
+ {id:"tanuki",label:"狸",alias:"校長",role:"中学校の校長。責任を口にしつつ決断しない",g:"chuu",ch:2,x:680,y:150,main:1},
+ {id:"akashatsu",label:"赤シャツ",alias:"教頭/文学士",role:"教頭。物腰は優しいが、裏で策をめぐらす",g:"teki",ch:2,x:820,y:330,main:1},
+ {id:"yamaarashi",label:"山嵐",alias:"堀田/会津っぽ",role:"数学の主任。生徒に人望がある会津出身の硬骨漢",g:"mikata",ch:2,x:390,y:480,main:1},
+ {id:"uranari",label:"うらなり",alias:"古賀",role:"英語の教師。土地の旧家の出で、君子と呼ばれるほど大人しい",g:"mikata",ch:2,x:330,y:640,main:1},
+ {id:"noda",label:"野だいこ",alias:"野だ/吉川",role:"画学の教師。芸人風で赤シャツの腰巾着",g:"teki",ch:2,x:960,y:470,main:1},
+ {id:"kangaku",label:"漢学の先生",alias:"漢学のお爺さん",role:"漢学の教師",g:"chuu",ch:2,x:560,y:150,main:0},
+ {id:"kozukai",label:"小使",alias:"",role:"学校の用務員",g:"chuu",ch:2,x:440,y:220,main:0},
+ {id:"ikagin",label:"いか銀",alias:"",role:"骨董を売買する、最初の下宿の主人",g:"machi",ch:2,x:220,y:490,main:1},
+ {id:"seito",label:"生徒・寄宿生",alias:"",role:"中学の生徒たち",g:"chuu",ch:3,x:670,y:520,main:1},
+ {id:"madonna",label:"マドンナ",alias:"遠山のお嬢さん",role:"町いちばんの美人。うらなりの婚約者だったが赤シャツに傾く",g:"chuu",ch:5,x:560,y:690,main:1},
+ {id:"kyoin",label:"ほかの教員",alias:"博物・歴史・体操の教師/書記の川村",role:"職員会議で赤シャツの寛大論に同調する",g:"chuu",ch:6,x:860,y:110,main:0},
+ {id:"uhaha",label:"うらなりの母",alias:"古賀のおっ母さん",role:"息子の増給を校長に頼む",g:"mikata",ch:7,x:170,y:690,main:0},
+ {id:"hagino",label:"萩野の婆さん",alias:"萩野の爺さん(謡が趣味)",role:"二番目の下宿の老夫婦。町の事情に通じている",g:"machi",ch:7,x:430,y:790,main:1},
+ {id:"mhaha",label:"マドンナの母",alias:"マドンナのお袋",role:"停車場でマドンナと連れ立つ",g:"chuu",ch:7,x:680,y:790,main:0},
+ {id:"otouto",label:"赤シャツの弟",alias:"",role:"おれに代数と算術を教わる生徒",g:"teki",ch:8,x:780,y:630,main:1},
+ {id:"geisha",label:"小鈴",alias:"鈴ちゃん/芸者",role:"赤シャツの馴染みの芸者",g:"teki",ch:9,x:1010,y:250,main:0},
+ {id:"shihan",label:"師範学校の生徒",alias:"",role:"祝勝会の日に中学生と衝突する",g:"chuu",ch:10,x:900,y:640,main:0},
+ {id:"shinbun",label:"四国新聞",alias:"",role:"喧嘩をおれと山嵐の扇動と報じる",g:"machi",ch:11,x:1040,y:370,main:0}
+];
+const E=[
+ ["kiyo","ore","溺愛",1,"おれを非常に可愛がってくれた"],
+ ["oyaji","ore","可愛がらない",1,"おれを可愛がってくれなかった"],
+ ["haha","ani","ひいき",1,"兄ばかり贔屓にしていた"],
+ ["ani","ore","不仲",1,"兄とは無論仲がよくない"],
+ ["oyaji","kiyo","主人と下女",1,"十年来召し使っている清"],
+ ["kiyo","oi","甥",1,"甥の厄介になりましょう"],
+ ["kantaro","ore","喧嘩",1,"栗を盗みにくる"],
+ ["furukawa","ore","怒鳴り込む",1,"真赤になって怒鳴り込んで"],
+ ["kanko","ore","いたずら仲間",1,"兼公と肴屋の角をつれて"],
+ ["tanuki","ore","上司",2,"校長室へ通した"],
+ ["akashatsu","ore","同僚(教頭)",2,"教頭のなにがしと云うのが居た"],
+ ["yamaarashi","ore","下宿を世話",2,"いい下宿を周旋してやる"],
+ ["yamaarashi","ikagin","下宿を周旋",2,"いい下宿を周旋してやる"],
+ ["yamaarashi","seito","人望",2,"一番生徒に人望がある"],
+ ["ikagin","ore","下宿の主人",2,"骨董を売買するいか銀"],
+ ["seito","ore","からかい・バッタ事件",3,"天麩羅先生とかいてある"],
+ ["tanuki","akashatsu","宿直免除の例外",4,"狸と赤シャツは例外"],
+ ["kozukai","ore","宿直の世話",4,"小使を宿直部屋へ呼んで"],
+ ["noda","akashatsu","腰巾着",5,"主従みたようだ"],
+ ["akashatsu","ore","釣りに誘い、忠告",5,"君釣りに行きませんか"],
+ ["akashatsu","yamaarashi","遠回しに中傷",5,"めったに油断の出来ないのが"],
+ ["noda","madonna","話題にする",5,"ラフハエルのマドンナ"],
+ ["ikagin","ore","追い出す",6,"君に出てもらいたいと云う"],
+ ["yamaarashi","ore","誤解・絶交",6,"氷水の代は受け取るから"],
+ ["yamaarashi","seito","会議で厳罰論",6,"寄宿生一同を厳罰に処する"],
+ ["kyoin","akashatsu","同調(赤シャツ党)",6,"大抵のものは赤シャツ党だ"],
+ ["kangaku","akashatsu","穏便説に同調",6,"穏便説に賛成と云った"],
+ ["uranari","hagino","下宿を紹介",7,"萩野と云って老人夫婦"],
+ ["hagino","ore","下宿のおかみ",7,"萩野の家の下宿人となった"],
+ ["uhaha","uranari","母子",7,"うらなり君のおっ母さん"],
+ ["uranari","madonna","婚約",7,"お嫁に行く約束が出来ていた"],
+ ["akashatsu","madonna","横恋慕",7,"是非お嫁にほしい"],
+ ["yamaarashi","akashatsu","談判・不仲",7,"それ以来折合がわるい"],
+ ["noda","ikagin","入れ替わりに入居",7,"おれの居た部屋を占領した"],
+ ["noda","madonna","あだ名の名付け親",7,"吉川先生がお付けた"],
+ ["mhaha","madonna","母娘",7,"マドンナのお袋"],
+ ["otouto","akashatsu","兄弟",8,"赤シャツの弟が取次に"],
+ ["otouto","ore","教え子",8,"代数と算術を教わる"],
+ ["akashatsu","ore","増給を持ちかけ、断られる",8,"増給はご免蒙ります"],
+ ["uhaha","tanuki","増給を頼む",8,"校長さんにお頼みて"],
+ ["tanuki","uranari","延岡行きを命じる",8,"延岡になら空いた口が"],
+ ["akashatsu","uranari","遠ざける策略(おれと山嵐の見立て)",9,"うらなりを遠ざけて"],
+ ["yamaarashi","ore","和解",9,"君に大変失敬した"],
+ ["yamaarashi","ikagin","正体を知る",9,"偽筆へ贋落款などを押して"],
+ ["ore","noda","送別会で殴る",9,"野だの頭をぽかり"],
+ ["yamaarashi","uranari","友人として談判",9,"校長へ二度、赤シャツへ一度"],
+ ["akashatsu","geisha","馴染み",10,"芸者に馴染のある事"],
+ ["otouto","yamaarashi","祝勝会へ誘い出す",10,"先生また喧嘩です"],
+ ["shihan","seito","喧嘩",10,"犬と猿のように仲がわるい"],
+ ["yamaarashi","ore","赤シャツ退治で共闘",10,"いつでも加勢する"],
+ ["akashatsu","shinbun","記事を書かせた(山嵐の推測)",11,"新聞屋へ手を廻して"],
+ ["shinbun","ore","中傷記事",11,"生意気なる某"],
+ ["tanuki","yamaarashi","辞職させる",11,"処決してくれと云われた"],
+ ["yamaarashi","akashatsu","角屋の帰りに殴る",11,"ぽかぽかなぐる"],
+ ["ore","noda","生卵をぶつける",11,"野だの面へ擲きつけた"],
+ ["kiyo","ore","東京で同居",11,"清とうちを持つ"]
+];
+const css=getComputedStyle(document.documentElement);
+const col=k=>css.getPropertyValue("--"+k).trim();
+const els=[...P.map(p=>({data:{...p,color:col(p.g)},position:{x:p.x,y:p.y},classes:p.main?"":"minor"})),
+ ...E.map((e,i)=>({data:{id:"e"+i,source:e[0],target:e[1],label:e[2],ch:e[3],ev:e[4]}}))];
+const cy=cytoscape({container:document.getElementById("cy"),elements:els,layout:{name:"preset",padding:30},
+ wheelSensitivity:0.25,minZoom:0.3,maxZoom:2.5,
+ style:[
+  {selector:"node",style:{"background-color":"data(color)","label":"data(label)","color":col("ink"),"font-family":"Noto Sans JP, sans-serif","font-size":15,"font-weight":500,"text-valign":"bottom","text-margin-y":6,"width":30,"height":30,"border-width":2,"border-color":col("panel"),"text-background-color":col("panel"),"text-background-opacity":0.85,"text-background-padding":2}},
+  {selector:"node.minor",style:{"width":20,"height":20,"font-size":12,"font-weight":400}},
+  {selector:"node#ore",style:{"width":46,"height":46,"font-size":18}},
+  {selector:"edge",style:{"width":1.5,"line-color":col("muted"),"target-arrow-color":col("muted"),"target-arrow-shape":"triangle","arrow-scale":0.8,"curve-style":"bezier","label":"data(label)","font-size":10.5,"color":col("muted"),"text-background-color":col("panel"),"text-background-opacity":0.9,"text-background-padding":2,"font-family":"Noto Sans JP, sans-serif","opacity":0.85}},
+  {selector:".faded",style:{"opacity":0.12}},
+  {selector:"node:selected",style:{"border-color":col("ink"),"border-width":3}}
+ ]});
+let current="ore";
+function card(id){
+  current=id;
+  const n=cy.getElementById(id), d=n.data(), c=document.getElementById("card");
+  const rels=n.connectedEdges().filter(e=>e.visible()).sort((a,b)=>a.data("ch")-b.data("ch")).map(e=>{
+    const ed=e.data(), other=ed.source===id?ed.target:ed.source, od=cy.getElementById(other).data();
+    const dir=ed.source===id?"→ ":"← ";
+    return `<li><span class="who">${dir}${od.label}</span>:${ed.label}<span class="ev">第${KAN[ed.ch]}章 <q>${ed.ev}</q></span></li>`;}).join("");
+  c.innerHTML=`<h2>${d.label}</h2><p class="alias">${d.alias?"別名: "+d.alias:"別名なし"}</p>
+   <span class="badge">初登場 第${KAN[d.ch]}章</span>
+   <p class="role">${d.role}</p><ul class="rels">${rels||"<li>この章までの関係はまだありません</li>"}</ul>`;
+}
+function focusOn(id){cy.elements().removeClass("faded");const n=cy.getElementById(id);
+  cy.elements().not(n.closedNeighborhood()).addClass("faded");card(id);}
+cy.on("tap","node",ev=>focusOn(ev.target.id()));
+cy.on("tap",ev=>{if(ev.target===cy){cy.elements().removeClass("faded");}});
+function apply(){
+  const N=+document.getElementById("ch").value, mi=document.getElementById("showMinor").checked;
+  document.getElementById("chLabel").textContent=`第${KAN[N]}章まで`;
+  cy.batch(()=>{
+    cy.nodes().forEach(n=>{const ok=n.data("ch")<=N&&(mi||n.data("main"));n.style("display",ok?"element":"none");});
+    cy.edges().forEach(e=>{e.style("display",e.data("ch")<=N?"element":"none");});
+  });
+  const n=cy.getElementById(current);card(n.visible()?current:"ore");
+}
+document.getElementById("ch").addEventListener("input",apply);
+document.getElementById("showMinor").addEventListener("change",apply);
+document.getElementById("fit").addEventListener("click",()=>{cy.elements().removeClass("faded");cy.fit(cy.elements(":visible"),30);});
+apply();
+</script>
+
+</body></html>
