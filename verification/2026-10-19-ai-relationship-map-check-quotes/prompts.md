@@ -17,10 +17,13 @@
 
 | AI | 試した日 | モデル・プラン（画面の表示を根拠に） | 往復数 | 試作ページまで行ったか | 記録ファイル |
 |---|---|---|---|---|---|
-| Claude | | | | | `claude-log.md`・`claude-map.html` |
-| ChatGPT | | | | | `chatgpt-log.md`・`chatgpt-map.html` |
-| Gemini | | | | | `gemini-log.md`・`gemini-map.html` |
-| Microsoft Copilot | | | | | `copilot-log.md`・`copilot-map.html` |
+| Claude | 2026-10-18 | Opus 5.5 | 7 | 行った（2回目でzipを添付） | `claude opus5.5/` の `会話コピー.txt`（画面からコピー）、`坊っちゃん相関図_作業手順.md`（AIが書いた手順書）、HTML 2つ |
+| ChatGPT | 2026-10-18 | 不明 | 5 | 行った | `chatgpt model不明/` の `bocchan_chat_transcript.md`（AIのまとめ）、HTML |
+| Gemini | 2026-10-18 | Gemini 3 | 6 | 行った（HTMLは自分から頼んだ） | `gemini3/` の `code_artifact.md`（AIのまとめ）、`code_artifact.html` |
+| Microsoft Copilot | 2026-10-18 | 不明 | 6 | 行った | `microsoft copilot model不明/` の `会話コピー.txt`（画面からコピー。1回目の指示と返答は入っていない）、`botchan.md`（AIのまとめ）、HTML |
+
+- 指示の文面はAIごとに少し変えた回がある（それぞれの記録が正）。Claude は2回目の答えの最後に「作ってみましょうか」と聞かれたので、3回目「どんなアプリがいいか」は投げず「ぜひお願いします」と答えた。ChatGPT は3回目で答えの選択肢の一つ「HTMLの相関図ツールにする」をそのまま返した。Gemini は2回目の答えにあった例文を3回目にそのまま貼り、4回目で「一枚のHTMLでインタラクティブに」と自分から頼んだ
+- Copilot の `botchan.md`（Copilotのまとめ）に並んでいる筆者の発言は、画面からコピーした `会話コピー.txt` と文面が違う。Copilotは「返答本文が取得できていない」と答えており、まとめは当てにならない。Copilot の記録は `会話コピー.txt` を正とする
 
 - 往復数は、こちらから投げた回数で数える。4回目までで試作ページにならず、言い足した指示があれば、その文面もログに残る形で投げる
 

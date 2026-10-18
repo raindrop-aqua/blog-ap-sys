@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>坊っちゃん 相関図</title>
+
+<style>
+body{
+    margin:0;
+    font-family:"Yu Gothic","Meiryo",sans-serif;
+    display:flex;
+    height:100vh;
+}
+
+#graph{
+    flex:1;
+    background:#f5f7fa;
+    position:relative;
+    overflow:hidden;
+}
+
+#info{
+    width:320px;
+    border-left:1px solid #ccc;
+    padding:20px;
+    background:white;
+    box-sizing:border-box;
+}
+
+#info h2{
+    margin-top:0;
+}
+
+.node{
+    position:absolute;
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    cursor:move;
+    user-select:none;
+    z-index:2;
+    box-shadow:0 4px 8px rgba(0,0,0,0.2);
+}
+
+svg{
+    position:absolute;
+    width:100%;
+    height:100%;
+}
+</style>
+</head>
+<body>
+
+<div id="graph">
+    <svg id="lines"></svg>
+</div>
+
+<div id="info">
+    <h2>登場人物</h2>
+    <div id="detail">
+        人物をクリックしてください
+    </div>
+
+    <hr>
+
+    <h3>凡例</h3>
+    <p>🟢 信頼・友情</p>
+    <p>🔴 敵対</p>
+    <p>🩷 恋愛・婚約</p>
+    <p>⚫ その他</p>
+</div>
+
+<script>
+
+const characters = {
+    "坊っちゃん":{
+        color:"#3498db",
+        x:450,
+        y:250,
+        desc:"主人公。江戸っ子気質で正義感が強い数学教師。"
+    },
+    "清":{
+        color:"#27ae60",
+        x:150,
+        y:100,
+        desc:"坊っちゃんを深く信頼し続ける下女。"
+    },
+    "山嵐":{
+        color:"#2ecc71",
+        x:250,
+        y:350,
+        desc:"坊っちゃんの味方となる数学主任。"
+    },
+    "赤シャツ":{
+        color:"#e74c3c",
+        x:700,
+        y:200,
+        desc:"教頭。物語最大の敵対者。"
+    },
+    "野だいこ":{
+        color:"#d35400",
+        x:850,
+        y:300,
+        desc:"赤シャツの取り巻き。"
+    },
+    "マドンナ":{
+        color:"#e84393",
+        x:650,
+        y:420,
+        desc:"美しい女性。"
+    },
+    "うらなり":{
+        color:"#9b59b6",
+        x:470,
+        y:500,
+        desc:"マドンナの婚約者。"
+    }
+};
+
+const relations = [
+    ["坊っちゃん","清","green","信頼"],
+    ["坊っちゃん","山嵐","green","友情"],
+    ["坊っちゃん","赤シャツ","red","対立"],
+    ["山嵐","赤シャツ","red","対立"],
+    ["赤シャツ","野だいこ","black","従属"],
+    ["赤シャツ","マドンナ","hotpink","恋愛"],
+    ["うらなり","マドンナ","hotpink","婚約"]
+];
+
+const graph = document.getElementById("graph");
+const svg = document.getElementById("lines");
+const detail = document.getElementById("detail");
+
+const nodeElements = {};
+
+function createNodes(){
+
+    for(const name in characters){
+
+        const c=characters[name];
+
+        const node=document.createElement("div");
+        node.className="node";
+        node.textContent=name;
+        node.style.background=c.color;
+
+        node.style.left=c.x+"px";
+        node.style.top=c.y+"px";
+
+        graph.appendChild(node);
+
+        node.onclick=()=>{
+            detail.innerHTML=`
+            <h3>${name}</h3>
+            <p>${c.desc}</p>
+            `;
+        };
+
+        makeDraggable(node,name);
+
+        nodeElements[name]=node;
+    }
+}
+
+function drawLines(){
+
+    svg.innerHTML="";
+
+    relations.forEach(r=>{
+
+        const from=nodeElements[r[0]];
+        const to=nodeElements[r[1]];
+
+        const x1=from.offsetLeft+50;
+        const y1=from.offsetTop+50;
+
+        const x2=to.offsetLeft+50;
+        const y2=to.offsetTop+50;
+
+        const line=document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line"
+        );
+
+        line.setAttribute("x1",x1);
+        line.setAttribute("y1",y1);
+        line.setAttribute("x2",x2);
+        line.setAttribute("y2",y2);
+        line.setAttribute("stroke",r[2]);
+        line.setAttribute("stroke-width","4");
+
+        svg.appendChild(line);
+    });
+}
+
+function makeDraggable(el,name){
+
+    let dragging=false;
+    let offsetX=0;
+    let offsetY=0;
+
+    el.addEventListener("mousedown",e=>{
+
+        dragging=true;
+
+        offsetX=e.clientX-el.offsetLeft;
+        offsetY=e.clientY-el.offsetTop;
+    });
+
+    document.addEventListener("mousemove",e=>{
+
+        if(!dragging)return;
+
+        el.style.left=(e.clientX-offsetX)+"px";
+        el.style.top=(e.clientY-offsetY)+"px";
+
+        drawLines();
+    });
+
+    document.addEventListener("mouseup",()=>{
+
+        dragging=false;
+    });
+}
+
+createNodes();
+drawLines();
+
+</script>
+
+</body>
+</html>
