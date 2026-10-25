@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "記事を書く仕組みだけでは、書きたいことは出てこなかった ― ブログの外で問いを言葉にし、AIに拾わせる"
+date: 2026-11-16
 categories: [開発者向け]
 tags: [現場実践, Claude Code, Skills, ブログ運営, 執筆]
 backlog_id: "DV10-06"
